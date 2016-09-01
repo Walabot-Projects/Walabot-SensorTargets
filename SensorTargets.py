@@ -11,6 +11,7 @@ except NameError:
     pass
 
 APP_X, APP_Y = 50, 50 # location of top-left corner of window
+CANVAS_LENGTH = 500
 
 
 class SensorTargetsApp(tk.Frame):
@@ -37,24 +38,34 @@ class RightPanel(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        #self.canvasPanel = CanvasPanel(self)
-        #self.canvasPanel.pack(side=tk.TOP)
+        self.canvasPanel = CanvasPanel(self)
+        self.canvasPanel.pack()
+
+
+class CanvasPanel(tk.LabelFrame):
+
+    def __init__(self, parent):
+        tk.LabelFrame.__init__(self, parent, text="Sensor Targets")
+        self.targetsCanvas = TargetsCanvas(self)
+        self.targetsCanvas.pack()
+
+
+class TargetsCanvas(tk.Canvas):
+
+    def __init__(self, parent):
+        tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
 def configureWindow(root):
-    """ Set configurations for the GUI window, such as icon, title, etc.
-    """
     root.title("Walabot - Sensor Targets")
     iconFile = tk.PhotoImage(file="walabot-icon.gif")
     root.tk.call("wm", "iconphoto", root._w, iconFile) # set app icon
     root.geometry("+{}+{}".format(APP_X, APP_Y)) # set window location
-    root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())
     root.option_add("*Font", "TkFixedFont")
-    print(root.aspect())
+    root.update()
+    root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())
 
 def sensorTargets():
-    """ Main function. Create and init the GUI class, which runs the app.
-    """
     root = tk.Tk()
     SensorTargetsApp(root).pack(side=tk.TOP, fill=tk.BOTH, expand=True)
     configureWindow(root)

@@ -18,50 +18,42 @@ class SensorTargetsApp(tk.Frame):
 
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        self.leftPanel = LeftPanel(self)
         self.canvasPanel = CanvasPanel(self)
-        self.leftPanel.pack(side=tk.LEFT, fill=tk.Y)
-        self.canvasPanel.pack(side=tk.RIGHT)
+        self.wlbtPanel = WalabotPanel(self)
+        self.ctrlPanel = ControlPanel(self)
+        self.canvasPanel.pack(side=tk.RIGHT, anchor=tk.NE)
+        self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.wlbt = Walabot()
 
     def initCycles(self):
         if self.wlbt.isConnected(): # connection achieved
-            self.leftPanel.ctrlPanel.statusVar.set("STATUS_CONNECTED")
+            self.ctrlPanel.statusVar.set("STATUS_CONNECTED")
             self.update_idletasks()
-            self.wlbt.setParameters(*self.leftPanel.wlbtPanel.getParameters())
+            self.wlbt.setParameters(*self.wlbtPanel.getParameters())
             params = self.wlbt.getParameters()
-            self.leftPanel.wlbtPanel.setParameters(*params)
+            self.wlbtPanel.setParameters(*params)
             self.canvasPanel.initArenaGrid(*params[0], *params[2])
             if not params[4]: # if not mti
-                self.leftPanel.ctrlPanel.statusVar.set('STATUS_CALIBRATING')
+                self.ctrlPanel.statusVar.set('STATUS_CALIBRATING')
                 self.update_idletasks()
                 self.wlbt.calibrate()
-            self.leftPanel.wlbtPanel.changeEntriesState('disabled')
+            self.wlbtPanel.changeEntriesState('disabled')
             self.startCycles()
         else:
-            self.leftPanel.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
+            self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
         self.canvasPanel.update(self.wlbt.getSensorTargets())
-        self.leftPanel.ctrlPanel.statusVar.set('STATUS_SCANNING')
-        self.leftPanel.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
+        self.ctrlPanel.statusVar.set('STATUS_SCANNING')
+        self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.startCycles)
 
     def stopCycles(self):
         self.after_cancel(self.cyclesId)
-        self.leftPanel.wlbtPanel.changeEntriesState("normal")
+        self.wlbtPanel.changeEntriesState("normal")
         self.canvasPanel.reset()
-        self.leftPanel.ctrlPanel.statusVar.set("STATUS_IDLE")
-
-
-class LeftPanel(tk.Frame):
-
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
-        self.wlbtPanel = WalabotPanel(self)
-        self.ctrlPanel = ControlPanel(self)
-        self.wlbtPanel.pack(side=tk.TOP)
-        self.ctrlPanel.pack(side=tk.TOP, fill=tk.BOTH)
+        self.ctrlPanel.statusVar.set("STATUS_IDLE")
 
 
 class WalabotPanel(tk.LabelFrame):
@@ -207,11 +199,11 @@ class ControlPanel(tk.LabelFrame):
         return strVar
 
     def start(self):
-        self.master.master.initCycles()
+        self.master.initCycles()
 
     def stop(self):
-        if hasattr(self.master.master, "cyclesId"):
-            self.master.master.stopCycles()
+        if hasattr(self.master, "cyclesId"):
+            self.master.stopCycles()
 
 
 class CanvasPanel(tk.LabelFrame):

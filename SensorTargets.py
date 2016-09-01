@@ -32,8 +32,8 @@ class SensorTargetsApp(tk.Frame):
             self.update_idletasks()
             self.wlbt.setParameters(*self.wlbtPanel.getParameters())
             params = self.wlbt.getParameters()
-            self.wlbtPanel.setParameters(*params)
-            self.canvasPanel.initArenaGrid(*params[0], *params[2])
+            self.wlbtPanel.setParameters(*params) # update entries
+            self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
             if not params[4]: # if not mti
                 self.ctrlPanel.statusVar.set('STATUS_CALIBRATING')
                 self.update_idletasks()
@@ -213,14 +213,15 @@ class CanvasPanel(tk.LabelFrame):
         self.targetsCanvas = TargetsCanvas(self)
         self.targetsCanvas.pack()
 
-    def initArenaGrid(self, *args):
-        pass
+    def initArenaGrid(self, r, theta, phi, threshold, mti):
+        self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
+        self.targetsCanvas.createArc(self.rMin, self.rMax, self.phi)
 
     def update(self, *args):
         pass
 
     def reset(self, *args):
-        pass
+        self.targetsCanvas.delete('all')
 
 
 class TargetsCanvas(tk.Canvas):
@@ -228,6 +229,16 @@ class TargetsCanvas(tk.Canvas):
     def __init__(self, master):
         tk.Canvas.__init__(self, master, background="black",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH)
+
+    def createArc(self, rMax, rMin, phi):
+        x0 = -CANVAS_LENGTH * (1/sin(radians(phi)) - 1) / 2
+        y0 = 0
+        x1 = CANVAS_LENGTH / 2 * (1/sin(radians(phi)) + 1)
+        y1 = CANVAS_LENGTH * 2
+        startDeg = 90 - phi
+        extentDeg = phi * 2
+        tk.Canvas.create_arc(self, x0, y0, x1, y1, start=startDeg,
+            extent=extentDeg,fill="green", outline="#AAA")
 
 
 class Walabot:

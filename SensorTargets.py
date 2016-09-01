@@ -245,10 +245,12 @@ class TargetsCanvas(tk.Canvas):
         x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
         deg = 0
         while deg < phi:
-            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg)) / sin(radians(phi)) - 1)
-            y1 = CANVAS_LENGTH * (1 - cos(radians(deg)) / cos(radians(phi)))
+            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg))/sin(radians(phi)) + 1)
+            x2 = CANVAS_LENGTH / 2 * (sin(radians(-deg))/sin(radians(phi)) + 1)
+            y1 = CANVAS_LENGTH * (1 - cos(radians(deg)))
             self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
-            deg += phi / 2
+            self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
+            deg += phi / 4
 
     def drawTargets(self, targets, rMin, rMax, phi):
         t = targets[0]

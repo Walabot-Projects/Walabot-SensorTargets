@@ -23,6 +23,7 @@ class SensorTargetsApp(tk.Frame):
         self.leftPanel.pack(side=tk.LEFT, fill=tk.Y)
         self.rightPanel.pack(side=tk.RIGHT)
 
+
 class LeftPanel(tk.Frame):
 
     def __init__(self, parent):
@@ -193,16 +194,15 @@ class ControlPanel(tk.LabelFrame):
 
 class CanvasPanel(tk.LabelFrame):
 
+    class TargetsCanvas(tk.Canvas):
+
+        def __init__(self, parent):
+            tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
+
     def __init__(self, parent):
         tk.LabelFrame.__init__(self, parent, text="Sensor Targets")
         self.targetsCanvas = TargetsCanvas(self)
         self.targetsCanvas.pack()
-
-
-class TargetsCanvas(tk.Canvas):
-
-    def __init__(self, parent):
-        tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
 class Walabot:

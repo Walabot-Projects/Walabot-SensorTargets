@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from math import sin, radians
+from math import sin, asin, radians, atan
 import WalabotAPI as wlbt
 try: # for Python 2
     import Tkinter as tk
@@ -9,6 +9,7 @@ try:
     range = xrange
 except NameError:
     pass
+from os import system
 
 APP_X, APP_Y = 50, 50 # location of top-left corner of window
 CANVAS_LENGTH = 500
@@ -35,17 +36,17 @@ class SensorTargetsApp(tk.Frame):
             self.wlbtPanel.setParameters(*params) # update entries
             self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
             if not params[4]: # if not mti
-                self.ctrlPanel.statusVar.set('STATUS_CALIBRATING')
+                self.ctrlPanel.statusVar.set("STATUS_CALIBRATING")
                 self.update_idletasks()
                 self.wlbt.calibrate()
-            self.wlbtPanel.changeEntriesState('disabled')
+            self.wlbtPanel.changeEntriesState("disabled")
             self.startCycles()
         else:
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
-        self.canvasPanel.update(self.wlbt.getSensorTargets())
-        self.ctrlPanel.statusVar.set('STATUS_SCANNING')
+        self.canvasPanel.addTargets(self.wlbt.getSensorTargets())
+        self.ctrlPanel.statusVar.set("STATUS_SCANNING")
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.startCycles)
 
@@ -217,11 +218,13 @@ class CanvasPanel(tk.LabelFrame):
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
         self.targetsCanvas.createArc(self.rMin, self.rMax, self.phi)
 
-    def update(self, *args):
-        pass
+    def addTargets(self, targets):
+        self.targetsCanvas.delete("target")
+        if targets:
+            self.targetsCanvas.drawTargets(targets)
 
     def reset(self, *args):
-        self.targetsCanvas.delete('all')
+        self.targetsCanvas.delete("all")
 
 
 class TargetsCanvas(tk.Canvas):
@@ -239,6 +242,15 @@ class TargetsCanvas(tk.Canvas):
         extentDeg = phi * 2
         tk.Canvas.create_arc(self, x0, y0, x1, y1, start=startDeg,
             extent=extentDeg,fill="green", outline="#AAA")
+
+    def drawTargets(self, targets):
+        t = targets[0]
+        #r = (t.xPosCm**2 + t.yPosCm**2 + t.zPosCm**2) ** 0.5
+        x = (t.yPosCm / (self.master.rMax*sin(self.master.phi))) * CANVAS_LENGTH + CANVAS_LENGTH / 2
+        y = CANVAS_LENGTH - (t.zPosCm / self.master.rMax * CANVAS_LENGTH)
+        self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
+        system("clear")
+        print("y: {} \t z: {}".format(t.yPosCm, t.zPosCm))
 
 
 class Walabot:

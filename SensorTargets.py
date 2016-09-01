@@ -16,20 +16,48 @@ CANVAS_LENGTH = 500
 
 class SensorTargetsApp(tk.Frame):
 
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
         self.leftPanel = LeftPanel(self)
         self.canvasPanel = CanvasPanel(self)
         self.leftPanel.pack(side=tk.LEFT, fill=tk.Y)
         self.canvasPanel.pack(side=tk.RIGHT)
         self.wlbt = Walabot()
 
+    def initCycles(self):
+        if self.wlbt.isConnected(): # connection achieved
+            self.leftPanel.ctrlPanel.statusVar.set("STATUS_CONNECTED")
+            self.update_idletasks()
+            self.wlbt.setParameters(*self.leftPanel.wlbtPanel.getParameters())
+            params = self.wlbt.getParameters()
+            self.leftPanel.wlbtPanel.setParameters(*params)
+            self.canvasPanel.initArenaGrid(*params[0], *params[2])
+            if not params[4]: # if not mti
+                self.leftPanel.ctrlPanel.statusVar.set('STATUS_CALIBRATING')
+                self.update_idletasks()
+                self.wlbt.calibrate()
+            self.leftPanel.wlbtPanel.changeEntriesState('disabled')
+            self.startCycles()
+        else:
+            self.leftPanel.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
+
+    def startCycles(self):
+        self.canvasPanel.update(self.wlbt.getSensorTargets())
+        self.leftPanel.ctrlPanel.statusVar.set('STATUS_SCANNING')
+        self.leftPanel.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
+        self.cyclesId = self.after_idle(self.startCycles)
+
+    def stopCycles(self):
+        self.after_cancel(self.cyclesId)
+        self.leftPanel.wlbtPanel.changeEntriesState("normal")
+        self.canvasPanel.reset()
+        self.leftPanel.ctrlPanel.statusVar.set("STATUS_IDLE")
 
 
 class LeftPanel(tk.Frame):
 
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
         self.wlbtPanel = WalabotPanel(self)
         self.ctrlPanel = ControlPanel(self)
         self.wlbtPanel.pack(side=tk.TOP)
@@ -40,8 +68,8 @@ class WalabotPanel(tk.LabelFrame):
 
     class WalabotParameter(tk.Frame):
 
-        def __init__(self, parent, varVal, minVal, maxVal, defaultVal):
-            tk.Frame.__init__(self, parent)
+        def __init__(self, master, varVal, minVal, maxVal, defaultVal):
+            tk.Frame.__init__(self, master)
             tk.Label(self, text=varVal).pack(side=tk.LEFT, padx=(0, 5), pady=1)
             self.minVal, self.maxVal = minVal, maxVal
             self.var = tk.StringVar()
@@ -74,8 +102,8 @@ class WalabotPanel(tk.LabelFrame):
 
     class WalabotParameterMTI(tk.Frame):
 
-        def __init__(self, parent):
-            tk.Frame.__init__(self, parent)
+        def __init__(self, master):
+            tk.Frame.__init__(self, master)
             tk.Label(self, text="MTI      ").pack(side=tk.LEFT)
             self.mtiVar = tk.IntVar()
             self.mtiVar.set(0)
@@ -96,8 +124,8 @@ class WalabotPanel(tk.LabelFrame):
             self.true.configure(state=state)
             self.false.configure(state=state)
 
-    def __init__(self, parent):
-        tk.LabelFrame.__init__(self, parent, text="Walabot Settings")
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="Walabot Settings")
         self.rMin = self.WalabotParameter(self, "R     Min", 1, 1000, 10.0)
         self.rMax = self.WalabotParameter(self, "R     Max", 1, 1000, 100.0)
         self.rRes = self.WalabotParameter(self, "R     Res", 0.1, 10, 2.0)
@@ -149,8 +177,8 @@ class WalabotPanel(tk.LabelFrame):
 
 class ControlPanel(tk.LabelFrame):
 
-    def __init__(self, parent):
-        tk.LabelFrame.__init__(self, parent, text="Control Panel")
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="Control Panel")
         self.buttonsFrame = tk.Frame(self)
         self.runButton, self.stopButton = self.setButtons(self.buttonsFrame)
         self.statusFrame = tk.Frame(self)
@@ -179,25 +207,34 @@ class ControlPanel(tk.LabelFrame):
         return strVar
 
     def start(self):
-        self.parent.initCycles()
+        self.master.master.initCycles()
 
     def stop(self):
-        if hasattr(self.parent, "cyclesId"):
-            self.parent.stopCycles()
+        if hasattr(self.master.master, "cyclesId"):
+            self.master.master.stopCycles()
 
 
 class CanvasPanel(tk.LabelFrame):
 
-    def __init__(self, parent):
-        tk.LabelFrame.__init__(self, parent, text="Sensor Targets")
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="Sensor Targets")
         self.targetsCanvas = TargetsCanvas(self)
         self.targetsCanvas.pack()
+
+    def initArenaGrid(self, *args):
+        pass
+
+    def update(self, *args):
+        pass
+
+    def reset(self, *args):
+        pass
 
 
 class TargetsCanvas(tk.Canvas):
 
-    def __init__(self, parent):
-        tk.Canvas.__init__(self, parent, background="black",
+    def __init__(self, master):
+        tk.Canvas.__init__(self, master, background="black",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
@@ -263,6 +300,7 @@ def sensorTargets():
     root.update()
     root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())
     root.mainloop()
+
 
 if __name__ == "__main__":
     sensorTargets()

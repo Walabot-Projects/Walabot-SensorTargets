@@ -21,9 +21,11 @@ class SensorTargetsApp(tk.Frame):
         tk.Frame.__init__(self, master)
         self.canvasPanel = CanvasPanel(self)
         self.wlbtPanel = WalabotPanel(self)
+        self.cnfgPanel = ConfigPanel(self)
         self.ctrlPanel = ControlPanel(self)
         self.canvasPanel.pack(side=tk.RIGHT, anchor=tk.NE)
         self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.wlbt = Walabot()
 
@@ -168,6 +170,42 @@ class WalabotPanel(tk.LabelFrame):
         self.mti.changeButtonsState(state)
 
 
+class ConfigPanel(tk.LabelFrame):
+
+    class NumOfTargets(tk.Frame):
+
+        def __init__(self, master):
+            tk.Frame.__init__(self, master)
+            tk.Label(self, text="Targets:").pack(side=tk.LEFT)
+            self.num = tk.IntVar()
+            self.num.set(1)
+            radio1 = tk.Radiobutton(self, text="1", variable=self.num, value=1)
+            radio2 = tk.Radiobutton(self, text="2", variable=self.num, value=2)
+            radio3 = tk.Radiobutton(self, text="3", variable=self.num, value=3)
+            radio4 = tk.Radiobutton(self, text="4", variable=self.num, value=4)
+            radio1.pack(side=tk.LEFT)
+            radio2.pack(side=tk.LEFT)
+            radio3.pack(side=tk.LEFT)
+            radio4.pack(side=tk.LEFT)
+
+        def get(self):
+            return self.num.get()
+
+        def set(self, value):
+            self.num.set(value)
+
+        def changeButtonsState(self, state):
+            self.radio1.configure(state=state)
+            self.radio2.configure(state=state)
+            self.radio3.configure(state=state)
+            self.radio4.configure(state=state)
+
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="App Settings")
+        self.numTargets = self.NumOfTargets(self)
+        self.numTargets.pack(anchor=tk.W)
+
+
 class ControlPanel(tk.LabelFrame):
 
     def __init__(self, master):
@@ -250,7 +288,7 @@ class TargetsCanvas(tk.Canvas):
             y1 = CANVAS_LENGTH * (1 - cos(radians(deg)))
             self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
             self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
-            deg += phi / 4
+            deg += phi / 3
 
     def drawTargets(self, targets, rMin, rMax, phi):
         t = targets[0]

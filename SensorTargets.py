@@ -166,6 +166,58 @@ class TargetsCanvas(tk.Canvas):
         tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
+class Walabot:
+
+    def __init__(self, master):
+        self.master = master
+        self.wlbt = wlbt
+        self.wlbt.Init()
+        self.wlbt.SetSettingsFolder()
+        self.distance = lambda t: (t.xPosCm**2+t.yPosCm**2+t.zPosCm**2)**0.5
+
+    def isConnected(self):
+        try:
+            self.wlbt.ConnectAny()
+        except self.wlbt.WalabotError as err:
+            if err.code == 19: # "WALABOT_INSTRUMENT_NOT_FOUND"
+                return False
+            else:
+                raise err
+        return True
+
+    def getParameters(self):
+        r = self.wlbt.GetArenaR()
+        theta = self.wlbt.GetArenaTheta()
+        phi = self.wlbt.GetArenaPhi()
+        threshold = self.wlbt.GetThreshold()
+        mti = self.wlbt.GetDynamicImageFilter()
+        return r, theta, phi, threshold, mti
+
+    def setParameters(self, r, theta, phi, threshold, mti):
+        self.wlbt.SetProfile(self.wlbt.PROF_SENSOR)
+        self.wlbt.SetArenaR(*r)
+        self.wlbt.SetArenaTheta(*theta)
+        self.wlbt.SetArenaPhi(*phi)
+        self.wlbt.SetThreshold(threshold)
+        self.wlbt.SetDynamicImageFilter(mti)
+        self.wlbt.Start()
+
+    def calibrate(self):
+        while self.wlbt.GetStatus()[0] == self.wlbt.STATUS_CALIBRATING:
+            self.wlbt.Trigger()
+
+    def getSensorTargets(self):
+        self.wlbt.Trigger()
+        return sorted(self.wlbt.GetSensorTargets(), key=self.distance)
+
+    def getFps(self):
+        return self.wlbt.GetAdvancedParameter("FrameRate")
+
+    def stopAndDisconnect(self):
+        self.wlbt.Stop()
+        self.wlbt.Disconnect()
+
+
 def sensorTargets():
     root = tk.Tk()
     root.title("Walabot - Sensor Targets")

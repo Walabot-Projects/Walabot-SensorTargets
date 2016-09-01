@@ -28,9 +28,9 @@ class LeftPanel(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.wlbtPanel = WalabotPanel(self)
-        #self.ctrlPanel = ControlPanel(self)
+        self.ctrlPanel = ControlPanel(self)
         self.wlbtPanel.pack(side=tk.TOP)
-        #self.ctrlPanel.pack(side=tk.TOP)
+        self.ctrlPanel.pack(side=tk.TOP, fill=tk.BOTH)
 
 
 class WalabotPanel(tk.LabelFrame):
@@ -150,6 +150,45 @@ class RightPanel(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.canvasPanel = CanvasPanel(self)
         self.canvasPanel.pack()
+
+
+class ControlPanel(tk.LabelFrame):
+
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="Control Panel")
+        self.buttonsFrame = tk.Frame(self)
+        self.runButton, self.stopButton = self.setButtons(self.buttonsFrame)
+        self.statusFrame = tk.Frame(self)
+        self.statusVar = self.setVar(self.statusFrame, "APP_STATUS", "")
+        self.errorFrame = tk.Frame(self)
+        self.errorVar = self.setVar(self.errorFrame, "EXCEPTION", "")
+        self.fpsFrame = tk.Frame(self)
+        self.fpsVar = self.setVar(self.fpsFrame, "FRAME_RATE", "N/A")
+        self.buttonsFrame.grid(row=0, column=0, sticky=tk.W)
+        self.statusFrame.grid(row=1, columnspan=2, sticky=tk.W)
+        self.errorFrame.grid(row=2, columnspan=2, sticky=tk.W)
+        self.fpsFrame.grid(row=3, columnspan=2, sticky=tk.W)
+
+    def setButtons(self, frame):
+        runButton = tk.Button(frame, text="Start", command=self.start)
+        stopButton = tk.Button(frame, text="Stop", command=self.stop)
+        runButton.grid(row=0, column=0)
+        stopButton.grid(row=0, column=1)
+        return runButton, stopButton
+
+    def setVar(self, frame, varText, default):
+        strVar = tk.StringVar()
+        strVar.set(default)
+        tk.Label(frame, text=(varText).ljust(12)).grid(row=0, column=0)
+        tk.Label(frame, textvariable=strVar).grid(row=0, column=1)
+        return strVar
+
+    def start(self):
+        self.master.initCycles()
+
+    def stop(self):
+        if hasattr(self.master, "cyclesId"):
+            self.master.stopCycles()
 
 
 class CanvasPanel(tk.LabelFrame):

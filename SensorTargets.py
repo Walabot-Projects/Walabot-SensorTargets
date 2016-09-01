@@ -22,6 +22,8 @@ class SensorTargetsApp(tk.Frame):
         self.canvasPanel = CanvasPanel(self)
         self.leftPanel.pack(side=tk.LEFT, fill=tk.Y)
         self.canvasPanel.pack(side=tk.RIGHT)
+        self.wlbt = Walabot()
+
 
 
 class LeftPanel(tk.Frame):
@@ -147,8 +149,8 @@ class WalabotPanel(tk.LabelFrame):
 
 class ControlPanel(tk.LabelFrame):
 
-    def __init__(self, master):
-        tk.LabelFrame.__init__(self, master, text="Control Panel")
+    def __init__(self, parent):
+        tk.LabelFrame.__init__(self, parent, text="Control Panel")
         self.buttonsFrame = tk.Frame(self)
         self.runButton, self.stopButton = self.setButtons(self.buttonsFrame)
         self.statusFrame = tk.Frame(self)
@@ -177,11 +179,11 @@ class ControlPanel(tk.LabelFrame):
         return strVar
 
     def start(self):
-        self.master.initCycles()
+        self.parent.initCycles()
 
     def stop(self):
-        if hasattr(self.master, "cyclesId"):
-            self.master.stopCycles()
+        if hasattr(self.parent, "cyclesId"):
+            self.parent.stopCycles()
 
 
 class CanvasPanel(tk.LabelFrame):
@@ -195,13 +197,13 @@ class CanvasPanel(tk.LabelFrame):
 class TargetsCanvas(tk.Canvas):
 
     def __init__(self, parent):
-        tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
+        tk.Canvas.__init__(self, parent, background="black",
+            width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
 class Walabot:
 
-    def __init__(self, master):
-        self.master = master
+    def __init__(self):
         self.wlbt = wlbt
         self.wlbt.Init()
         self.wlbt.SetSettingsFolder()

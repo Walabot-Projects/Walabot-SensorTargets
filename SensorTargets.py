@@ -20,18 +20,128 @@ class SensorTargetsApp(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.leftPanel = LeftPanel(self)
         self.rightPanel = RightPanel(self)
-        self.leftPanel.pack(side=tk.LEFT)
+        self.leftPanel.pack(side=tk.LEFT, fill=tk.Y)
         self.rightPanel.pack(side=tk.RIGHT)
-
 
 class LeftPanel(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        #self.wlbtPanel = WalabotPanel(self)
+        self.wlbtPanel = WalabotPanel(self)
         #self.ctrlPanel = ControlPanel(self)
-        #self.wlbtPanel.pack(side=tk.TOP)
+        self.wlbtPanel.pack(side=tk.TOP)
         #self.ctrlPanel.pack(side=tk.TOP)
+
+
+class WalabotPanel(tk.LabelFrame):
+
+    class WalabotParameter(tk.Frame):
+
+        def __init__(self, parent, varVal, minVal, maxVal, defaultVal):
+            tk.Frame.__init__(self, parent)
+            tk.Label(self, text=varVal).pack(side=tk.LEFT, padx=(0, 5), pady=1)
+            self.minVal, self.maxVal = minVal, maxVal
+            self.var = tk.StringVar()
+            self.var.set(defaultVal)
+            self.entry = tk.Entry(self, width=7, textvariable=self.var)
+            self.entry.pack(side=tk.LEFT)
+            self.var.trace("w", lambda a, b, c, var=self.var:
+                self.validate())
+            txt = "[{}, {}]".format(minVal, maxVal)
+            tk.Label(self, text=txt).pack(side=tk.LEFT, padx=(5, 20), pady=1)
+
+        def validate(self):
+            num = self.var.get()
+            try:
+                num = float(num)
+                if num < self.minVal or num > self.maxVal:
+                    self.entry.config(fg="red"); return
+                self.entry.config(fg="gray1")
+            except ValueError:
+                self.entry.config(fg="red"); return
+
+        def get(self):
+            return float(self.var.get())
+
+        def set(self, value):
+            self.var.set(value)
+
+        def changeEntryState(self, state):
+            self.entry.configure(state=state)
+
+    class WalabotParameterMTI(tk.Frame):
+
+        def __init__(self, parent):
+            tk.Frame.__init__(self, parent)
+            tk.Label(self, text="MTI      ").pack(side=tk.LEFT)
+            self.mtiVar = tk.IntVar()
+            self.mtiVar.set(0)
+            self.true = tk.Radiobutton(self, text="True",
+                variable=self.mtiVar, value=2)
+            self.false = tk.Radiobutton(self, text="False",
+                variable=self.mtiVar, value=0)
+            self.true.pack(side=tk.LEFT)
+            self.false.pack(side=tk.LEFT)
+
+        def get(self):
+            return self.mtiVar.get()
+
+        def set(self, value):
+            self.mtiVar.set(value)
+
+        def changeButtonsState(self, state):
+            self.true.configure(state=state)
+            self.false.configure(state=state)
+
+    def __init__(self, parent):
+        tk.LabelFrame.__init__(self, parent, text="Walabot Settings")
+        self.rMin = self.WalabotParameter(self, "R     Min", 1, 1000, 10.0)
+        self.rMax = self.WalabotParameter(self, "R     Max", 1, 1000, 100.0)
+        self.rRes = self.WalabotParameter(self, "R     Res", 0.1, 10, 2.0)
+        self.tMax = self.WalabotParameter(self, "Theta Max", 1, 90, 20.0)
+        self.tRes = self.WalabotParameter(self, "Theta Res", 1, 10, 10.0)
+        self.pMax = self.WalabotParameter(self, "Phi   Max", 1, 90, 45.0)
+        self.pRes = self.WalabotParameter(self, "Phi   Res", 1, 10, 2.0)
+        self.thld = self.WalabotParameter(self, "Threshold", 0.1, 100, 15.0)
+        self.mti = self.WalabotParameterMTI(self)
+        self.rMin.pack(anchor=tk.W)
+        self.rMax.pack(anchor=tk.W)
+        self.rRes.pack(anchor=tk.W)
+        self.tMax.pack(anchor=tk.W)
+        self.tRes.pack(anchor=tk.W)
+        self.pMax.pack(anchor=tk.W)
+        self.pRes.pack(anchor=tk.W)
+        self.thld.pack(anchor=tk.W)
+        self.mti.pack(anchor=tk.W)
+
+    def getParameters(self):
+        rParams = (self.rMin.get(), self.rMax.get(), self.rRes.get())
+        tParams = (-self.tMax.get(), self.tMax.get(), self.tRes.get())
+        pParams = (-self.pMax.get(), self.pMax.get(), self.pRes.get())
+        thldParam, mtiParam = self.thld.get(), self.mti.get()
+        return rParams, tParams, pParams, thldParam, mtiParam
+
+    def setParameters(self, rParams, tParams, pParams, thldParam, mtiParam):
+        self.rMin.set(rParams[0])
+        self.rMax.set(rParams[1])
+        self.rRes.set(rParams[2])
+        self.tMax.set(tParams[1])
+        self.tRes.set(tParams[2])
+        self.pMax.set(pParams[1])
+        self.pRes.set(pParams[2])
+        self.thld.set(thldParam)
+        self.mti.set(mtiParam)
+
+    def changeEntriesState(self, state):
+        self.rMin.changeEntryState(state)
+        self.rMax.changeEntryState(state)
+        self.rRes.changeEntryState(state)
+        self.tMax.changeEntryState(state)
+        self.tRes.changeEntryState(state)
+        self.pMax.changeEntryState(state)
+        self.pRes.changeEntryState(state)
+        self.thld.changeEntryState(state)
+        self.mti.changeButtonsState(state)
 
 
 class RightPanel(tk.Frame):
@@ -56,19 +166,16 @@ class TargetsCanvas(tk.Canvas):
         tk.Canvas.__init__(self, parent, width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
 
-def configureWindow(root):
+def sensorTargets():
+    root = tk.Tk()
     root.title("Walabot - Sensor Targets")
     iconFile = tk.PhotoImage(file="walabot-icon.gif")
     root.tk.call("wm", "iconphoto", root._w, iconFile) # set app icon
-    root.geometry("+{}+{}".format(APP_X, APP_Y)) # set window location
     root.option_add("*Font", "TkFixedFont")
+    SensorTargetsApp(root).pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+    root.geometry("+{}+{}".format(APP_X, APP_Y)) # set window location
     root.update()
     root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())
-
-def sensorTargets():
-    root = tk.Tk()
-    SensorTargetsApp(root).pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-    configureWindow(root)
     root.mainloop()
 
 if __name__ == "__main__":

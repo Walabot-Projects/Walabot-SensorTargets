@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from math import sin, asin, radians, atan
+from math import sin, cos, radians
 import WalabotAPI as wlbt
 try: # for Python 2
     import Tkinter as tk
@@ -216,12 +216,12 @@ class CanvasPanel(tk.LabelFrame):
 
     def initArenaGrid(self, r, theta, phi, threshold, mti):
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
-        self.targetsCanvas.createArc(self.rMin, self.rMax, self.phi)
+        self.targetsCanvas.drawArenaGrid(self.rMin, self.rMax, self.phi)
 
     def addTargets(self, targets):
         self.targetsCanvas.delete("target")
         if targets:
-            self.targetsCanvas.drawTargets(targets)
+            self.targetsCanvas.drawTargets(targets, self.rMin, self.rMax, self.phi)
 
     def reset(self, *args):
         self.targetsCanvas.delete("all")
@@ -233,24 +233,28 @@ class TargetsCanvas(tk.Canvas):
         tk.Canvas.__init__(self, master, background="black",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH)
 
-    def createArc(self, rMax, rMin, phi):
+    def drawArenaGrid(self, rMin, rMax, phi):
         x0 = -CANVAS_LENGTH * (1/sin(radians(phi)) - 1) / 2
         y0 = 0
         x1 = CANVAS_LENGTH / 2 * (1/sin(radians(phi)) + 1)
         y1 = CANVAS_LENGTH * 2
         startDeg = 90 - phi
         extentDeg = phi * 2
-        tk.Canvas.create_arc(self, x0, y0, x1, y1, start=startDeg,
-            extent=extentDeg,fill="green", outline="#AAA")
+        self.create_arc(x0, y0, x1, y1, start=startDeg, extent=extentDeg,
+            fill="green", outline="#AAA")
+        x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
+        deg = 0
+        while deg < phi:
+            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg)) / sin(radians(phi)) - 1)
+            y1 = CANVAS_LENGTH * (1 - cos(radians(deg)) / cos(radians(phi)))
+            self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
+            deg += phi / 2
 
-    def drawTargets(self, targets):
+    def drawTargets(self, targets, rMin, rMax, phi):
         t = targets[0]
-        #r = (t.xPosCm**2 + t.yPosCm**2 + t.zPosCm**2) ** 0.5
-        x = (t.yPosCm / (self.master.rMax*sin(self.master.phi))) * CANVAS_LENGTH + CANVAS_LENGTH / 2
-        y = CANVAS_LENGTH - (t.zPosCm / self.master.rMax * CANVAS_LENGTH)
+        x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
+        y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
         self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
-        system("clear")
-        print("y: {} \t z: {}".format(t.yPosCm, t.zPosCm))
 
 
 class Walabot:

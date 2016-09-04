@@ -34,7 +34,11 @@ class SensorTargetsApp(tk.Frame):
         if self.wlbt.isConnected(): # connection achieved
             self.ctrlPanel.statusVar.set("STATUS_CONNECTED")
             self.update_idletasks()
-            self.wlbt.setParameters(*self.wlbtPanel.getParameters())
+            try:
+                self.wlbt.setParameters(*self.wlbtPanel.getParameters())
+            except wlbt.WalabotError as err:
+                self.ctrlPanel.errorVar.set(str(err))
+                return
             params = self.wlbt.getParameters()
             self.wlbtPanel.setParameters(*params) # update entries
             self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
@@ -401,6 +405,7 @@ class Walabot:
 
     def getSensorTargets(self):
         self.wlbt.Trigger()
+
         return sorted(self.wlbt.GetSensorTargets(), key=self.distance)
 
     def getFps(self):

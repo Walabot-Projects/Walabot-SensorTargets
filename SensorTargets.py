@@ -313,59 +313,50 @@ class CanvasPanel(tk.LabelFrame):
 
     def __init__(self, master):
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
-        self.targetsCanvas = TargetsCanvas(self)
-        self.targetsCanvas.pack()
+        self.canvas = tk.Canvas(self, background="black",
+            width=CANVAS_LENGTH, height=CANVAS_LENGTH)
+        self.canvas.pack()
 
     def initArenaGrid(self, r, theta, phi, threshold, mti):
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
-        self.targetsCanvas.drawArenaGrid(self.rMin, self.rMax, self.phi)
+        self.drawArenaGrid()
+        self.drawArenaDividors()
 
-    def addTargets(self, targets):
-        if targets:
-            self.targetsCanvas.delete("target")
-            self.targetsCanvas.drawTargets(targets, self.rMin, self.rMax, self.phi)
-
-    def reset(self, *args):
-        self.targetsCanvas.delete("all")
-
-
-class TargetsCanvas(tk.Canvas):
-
-    def __init__(self, master):
-        tk.Canvas.__init__(self, master, background="black",
-            width=CANVAS_LENGTH, height=CANVAS_LENGTH)
-
-    def drawArenaGrid(self, rMin, rMax, phi):
-        x0 = -CANVAS_LENGTH * (1/sin(radians(phi)) - 1) / 2
+    def drawArenaGrid(self):
+        x0 = -CANVAS_LENGTH * (1/sin(radians(self.phi)) - 1) / 2
         y0 = 0
-        x1 = CANVAS_LENGTH / 2 * (1/sin(radians(phi)) + 1)
+        x1 = CANVAS_LENGTH / 2 * (1/sin(radians(self.phi)) + 1)
         y1 = CANVAS_LENGTH * 2
-        startDeg = 90 - phi
-        extentDeg = phi * 2
-        self.create_arc(x0, y0, x1, y1, start=startDeg, extent=extentDeg,
-            fill="green", outline="#AAA")
-        self.drawArenaDividors(phi)
+        startDeg = 90 - self.phi
+        extentDeg = self.phi * 2
+        self.canvas.create_arc(x0, y0, x1, y1, start=startDeg,
+            extent=extentDeg, fill="green", outline="#AAA")
 
-    def drawArenaDividors(self, phi):
+    def drawArenaDividors(self):
         x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
         deg = 0
-        arenaDividors = self.master.master.cnfgPanel.arenaDividors.get()
-        while deg < phi:
-            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg))/sin(radians(phi)) + 1)
-            x2 = CANVAS_LENGTH / 2 * (sin(radians(-deg))/sin(radians(phi)) + 1)
+        arenaDividors = self.master.cnfgPanel.arenaDividors.get()
+        while deg < self.phi:
+            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg))/sin(radians(self.phi)) + 1)
+            x2 = CANVAS_LENGTH / 2 * (sin(radians(-deg))/sin(radians(self.phi)) + 1)
             y1 = CANVAS_LENGTH * (1 - cos(radians(deg)))
-            self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
-            self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
-            deg += phi / arenaDividors
+            self.canvas.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
+            self.canvas.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
+            deg += self.phi / arenaDividors
 
-
-    def drawTargets(self, targets, rMin, rMax, phi):
+    def addTargets(self, targets):
+        self.canvas.delete("target")
         for i, t in enumerate(targets):
-            if i < self.master.master.numOfTargetsToDisplay:
-                x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
-                y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
-                self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
-                self.create_text(x, y, text="{}".format(i+1), tags="target")
+            if i < self.master.numOfTargetsToDisplay:
+                x = CANVAS_LENGTH / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
+                y = CANVAS_LENGTH * (1 - t.zPosCm / self.rMax)
+                self.canvas.create_oval(x-10, y-10, x+10, y+10, fill="red",
+                    tags="target")
+                self.canvas.create_text(x, y, text="{}".format(i+1),
+                    tags="target")
+
+    def reset(self, *args):
+        self.canvas.delete("all")
 
 
 class Walabot:

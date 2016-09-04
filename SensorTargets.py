@@ -61,6 +61,8 @@ class SensorTargetsApp(tk.Frame):
     def stopCycles(self):
         self.after_cancel(self.cyclesId)
         self.wlbtPanel.changeEntriesState("normal")
+        self.cnfgPanel.changeConfigsState("normal")
+        self.ctrlPanel.changeButtonsState("normal")
         self.canvasPanel.reset()
         self.trgtsPanel.reset()
         self.ctrlPanel.statusVar.set("STATUS_IDLE")
@@ -187,14 +189,12 @@ class ConfigPanel(tk.LabelFrame):
             self.maxNum = 4
             self.num = tk.IntVar()
             self.num.set(1)
-            self.radio1 = tk.Radiobutton(self, text="1", variable=self.num, value=1)
-            self.radio2 = tk.Radiobutton(self, text="2", variable=self.num, value=2)
-            self.radio3 = tk.Radiobutton(self, text="3", variable=self.num, value=3)
-            self.radio4 = tk.Radiobutton(self, text="4", variable=self.num, value=4)
-            self.radio1.pack(side=tk.LEFT)
-            self.radio2.pack(side=tk.LEFT)
-            self.radio3.pack(side=tk.LEFT)
-            self.radio4.pack(side=tk.LEFT)
+            self.radios = []
+            for i in range(self.maxNum):
+                radio = tk.Radiobutton(self, text="{}".format(i+1),
+                    variable=self.num, value=i+1)
+                radio.pack(side=tk.LEFT)
+                self.radios.append(radio)
 
         def get(self):
             return self.num.get()
@@ -203,10 +203,8 @@ class ConfigPanel(tk.LabelFrame):
             self.num.set(value)
 
         def changeButtonsState(self, state):
-            self.radio1.configure(state=state)
-            self.radio2.configure(state=state)
-            self.radio3.configure(state=state)
-            self.radio4.configure(state=state)
+            for radio in self.radios:
+                radio.configure(state=state)
 
     def __init__(self, master):
         tk.LabelFrame.__init__(self, master, text="App Settings")

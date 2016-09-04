@@ -31,7 +31,7 @@ class SensorTargetsApp(tk.Frame):
         self.wlbt = Walabot()
 
     def initCycles(self):
-        self.ctrlPanel.errorVar.set("")
+        #self.ctrlPanel.errorVar.set("")
         if self.wlbt.isConnected(): # connection achieved
             self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
             self.update_idletasks()
@@ -54,7 +54,7 @@ class SensorTargetsApp(tk.Frame):
             self.ctrlPanel.changeButtonsState("disabled")
             self.startCycles()
         else:
-            self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
+            self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
         try:

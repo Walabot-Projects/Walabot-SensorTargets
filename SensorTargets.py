@@ -206,13 +206,41 @@ class ConfigPanel(tk.LabelFrame):
             for radio in self.radios:
                 radio.configure(state=state)
 
+    class ArenaDividors(tk.Frame):
+
+        def __init__(self, master):
+            tk.Frame.__init__(self, master)
+            tk.Label(self, text="Arena Dividors:").pack(side=tk.LEFT)
+            self.maxNum = 4
+            self.num = tk.IntVar()
+            self.num.set(3)
+            self.radios = []
+            for i in range(self.maxNum):
+                radio = tk.Radiobutton(self, text="{}".format(2*i+1),
+                    variable=self.num, value=i+1)
+                radio.pack(side=tk.LEFT)
+                self.radios.append(radio)
+
+        def get(self):
+            return self.num.get()
+
+        def set(self, value):
+            self.num.set(value)
+
+        def changeButtonsState(self, state):
+            for radio in self.radios:
+                radio.configure(state=state)
+
     def __init__(self, master):
         tk.LabelFrame.__init__(self, master, text="App Settings")
         self.numTargets = self.NumOfTargets(self)
+        self.arenaDividors = self.ArenaDividors(self)
         self.numTargets.pack(anchor=tk.W)
+        self.arenaDividors.pack(anchor=tk.W)
 
     def changeConfigsState(self, state):
         self.numTargets.changeButtonsState(state)
+        self.arenaDividors.changeButtonsState(state)
 
 
 class ControlPanel(tk.LabelFrame):
@@ -318,13 +346,14 @@ class TargetsCanvas(tk.Canvas):
             fill="green", outline="#AAA")
         x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
         deg = 0
+        arenaDividors = self.master.master.cnfgPanel.arenaDividors.get()
         while deg < phi:
             x1 = CANVAS_LENGTH / 2 * (sin(radians(deg))/sin(radians(phi)) + 1)
             x2 = CANVAS_LENGTH / 2 * (sin(radians(-deg))/sin(radians(phi)) + 1)
             y1 = CANVAS_LENGTH * (1 - cos(radians(deg)))
             self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
             self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
-            deg += phi / 3
+            deg += phi / arenaDividors
 
     def drawTargets(self, targets, rMin, rMax, phi):
         for i, t in enumerate(targets):

@@ -21,13 +21,13 @@ class SensorTargetsApp(tk.Frame):
         self.canvasPanel = CanvasPanel(self)
         self.wlbtPanel = WalabotPanel(self)
         self.cnfgPanel = ConfigPanel(self)
-        self.ctrlPanel = ControlPanel(self)
         self.trgtsPanel = TargetsPanel(self)
+        self.ctrlPanel = ControlPanel(self)
         self.canvasPanel.pack(side=tk.RIGHT, anchor=tk.NE)
-        self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
-        self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
-        self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
-        self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
+        self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
+        self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
+        self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
         self.wlbt = Walabot()
 
     def initCycles(self):
@@ -186,7 +186,7 @@ class ConfigPanel(tk.LabelFrame):
         def __init__(self, master):
             tk.Frame.__init__(self, master)
             tk.Label(self, text="Targets:").pack(side=tk.LEFT)
-            self.maxNum = 4
+            self.maxNum = 5
             self.num = tk.IntVar()
             self.num.set(1)
             self.radios = []
@@ -344,6 +344,9 @@ class TargetsCanvas(tk.Canvas):
         extentDeg = phi * 2
         self.create_arc(x0, y0, x1, y1, start=startDeg, extent=extentDeg,
             fill="green", outline="#AAA")
+        self.drawArenaDividors(phi)
+
+    def drawArenaDividors(self, phi):
         x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
         deg = 0
         arenaDividors = self.master.master.cnfgPanel.arenaDividors.get()
@@ -354,6 +357,7 @@ class TargetsCanvas(tk.Canvas):
             self.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
             self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
             deg += phi / arenaDividors
+
 
     def drawTargets(self, targets, rMin, rMax, phi):
         for i, t in enumerate(targets):

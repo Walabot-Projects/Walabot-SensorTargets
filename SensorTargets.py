@@ -47,7 +47,9 @@ class SensorTargetsApp(tk.Frame):
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
-        self.canvasPanel.addTargets(self.wlbt.getSensorTargets())
+        targets = self.wlbt.getSensorTargets()
+        numToDisplay = self.cnfgPanel.numTargets.get()
+        self.canvasPanel.addTargets(targets, numToDisplay)
         self.ctrlPanel.statusVar.set("STATUS_SCANNING")
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.startCycles)
@@ -256,10 +258,10 @@ class CanvasPanel(tk.LabelFrame):
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
         self.targetsCanvas.drawArenaGrid(self.rMin, self.rMax, self.phi)
 
-    def addTargets(self, targets):
-        self.targetsCanvas.delete("target")
+    def addTargets(self, targets, numTargets):
         if targets:
-            self.targetsCanvas.drawTargets(targets, self.rMin, self.rMax, self.phi)
+            self.targetsCanvas.delete("target")
+            self.targetsCanvas.drawTargets(targets, numTargets, self.rMin, self.rMax, self.phi)
 
     def reset(self, *args):
         self.targetsCanvas.delete("all")
@@ -290,11 +292,12 @@ class TargetsCanvas(tk.Canvas):
             self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
             deg += phi / 3
 
-    def drawTargets(self, targets, rMin, rMax, phi):
-        t = targets[0]
-        x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
-        y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
-        self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
+    def drawTargets(self, targets, numTargets, rMin, rMax, phi):
+        for i, t in enumerate(targets):
+            if i < numTargets:
+                x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
+                y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
+                self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
 
 
 class Walabot:
@@ -333,6 +336,7 @@ class Walabot:
         self.wlbt.Start()
 
     def calibrate(self):
+        self.wlbt.StartCalibration()
         while self.wlbt.GetStatus()[0] == self.wlbt.STATUS_CALIBRATING:
             self.wlbt.Trigger()
 

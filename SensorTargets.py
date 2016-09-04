@@ -44,6 +44,8 @@ class SensorTargetsApp(tk.Frame):
                 self.update_idletasks()
                 self.wlbt.calibrate()
             self.wlbtPanel.changeEntriesState("disabled")
+            self.cnfgPanel.changeConfigsState("disabled")
+            self.ctrlPanel.changeButtonsState("disabled")
             self.startCycles()
         else:
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
@@ -185,14 +187,14 @@ class ConfigPanel(tk.LabelFrame):
             self.maxNum = 4
             self.num = tk.IntVar()
             self.num.set(1)
-            radio1 = tk.Radiobutton(self, text="1", variable=self.num, value=1)
-            radio2 = tk.Radiobutton(self, text="2", variable=self.num, value=2)
-            radio3 = tk.Radiobutton(self, text="3", variable=self.num, value=3)
-            radio4 = tk.Radiobutton(self, text="4", variable=self.num, value=4)
-            radio1.pack(side=tk.LEFT)
-            radio2.pack(side=tk.LEFT)
-            radio3.pack(side=tk.LEFT)
-            radio4.pack(side=tk.LEFT)
+            self.radio1 = tk.Radiobutton(self, text="1", variable=self.num, value=1)
+            self.radio2 = tk.Radiobutton(self, text="2", variable=self.num, value=2)
+            self.radio3 = tk.Radiobutton(self, text="3", variable=self.num, value=3)
+            self.radio4 = tk.Radiobutton(self, text="4", variable=self.num, value=4)
+            self.radio1.pack(side=tk.LEFT)
+            self.radio2.pack(side=tk.LEFT)
+            self.radio3.pack(side=tk.LEFT)
+            self.radio4.pack(side=tk.LEFT)
 
         def get(self):
             return self.num.get()
@@ -210,6 +212,9 @@ class ConfigPanel(tk.LabelFrame):
         tk.LabelFrame.__init__(self, master, text="App Settings")
         self.numTargets = self.NumOfTargets(self)
         self.numTargets.pack(anchor=tk.W)
+
+    def changeConfigsState(self, state):
+        self.numTargets.changeButtonsState(state)
 
 
 class ControlPanel(tk.LabelFrame):
@@ -249,6 +254,9 @@ class ControlPanel(tk.LabelFrame):
     def stop(self):
         if hasattr(self.master, "cyclesId"):
             self.master.stopCycles()
+
+    def changeButtonsState(self, state):
+        self.runButton.configure(state=state)
 
 
 class TargetsPanel(tk.LabelFrame):

@@ -31,20 +31,22 @@ class SensorTargetsApp(tk.Frame):
         self.wlbt = Walabot()
 
     def initCycles(self):
+        self.ctrlPanel.errorVar.set("")
         if self.wlbt.isConnected(): # connection achieved
-            self.ctrlPanel.statusVar.set("STATUS_CONNECTED")
+            self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
             self.update_idletasks()
             try:
                 self.wlbt.setParameters(*self.wlbtPanel.getParameters())
             except wlbt.WalabotError as err:
                 self.ctrlPanel.errorVar.set(str(err))
+                self.stopCycles()
                 return
             params = self.wlbt.getParameters()
             self.wlbtPanel.setParameters(*params) # update entries
             self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
             self.numOfTargetsToDisplay = self.cnfgPanel.numTargets.get()
             if not params[4]: # if not mti
-                self.ctrlPanel.statusVar.set("STATUS_CALIBRATING")
+                self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
                 self.update_idletasks()
                 self.wlbt.calibrate()
             self.wlbtPanel.changeEntriesState("disabled")
@@ -52,7 +54,7 @@ class SensorTargetsApp(tk.Frame):
             self.ctrlPanel.changeButtonsState("disabled")
             self.startCycles()
         else:
-            self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
+            self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
 
     def startCycles(self):
         try:
@@ -64,7 +66,7 @@ class SensorTargetsApp(tk.Frame):
         targets = targets[:self.numOfTargetsToDisplay]
         self.canvasPanel.addTargets(targets)
         self.trgtsPanel.update(targets)
-        self.ctrlPanel.statusVar.set("STATUS_SCANNING")
+        self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.startCycles)
 
@@ -75,7 +77,8 @@ class SensorTargetsApp(tk.Frame):
         self.ctrlPanel.changeButtonsState("normal")
         self.canvasPanel.reset()
         self.trgtsPanel.reset()
-        self.ctrlPanel.statusVar.set("STATUS_IDLE")
+        self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
+        self.ctrlPanel.fpsVar.set("")
 
 
 class WalabotPanel(tk.LabelFrame):
@@ -264,7 +267,7 @@ class ControlPanel(tk.LabelFrame):
         self.errorFrame = tk.Frame(self)
         self.errorVar = self.setVar(self.errorFrame, "EXCEPTION", "")
         self.fpsFrame = tk.Frame(self)
-        self.fpsVar = self.setVar(self.fpsFrame, "FRAME_RATE", "N/A")
+        self.fpsVar = self.setVar(self.fpsFrame, "FRAME_RATE", "")
         self.buttonsFrame.grid(row=0, column=0, sticky=tk.W)
         self.statusFrame.grid(row=1, columnspan=2, sticky=tk.W)
         self.errorFrame.grid(row=2, columnspan=2, sticky=tk.W)
@@ -408,6 +411,19 @@ class Walabot:
         self.wlbt.StartCalibration()
         while self.wlbt.GetStatus()[0] == self.wlbt.STATUS_CALIBRATING:
             self.wlbt.Trigger()
+
+    def getStatusString(self):
+        status = self.wlbt.GetStatus()[0]
+        if status == 0:
+            return "STATUS_DISCONNECTED"
+        elif status == 1:
+            return "STATUS_CONNECTED"
+        elif status == 2:
+            return "STATUS_IDLE"
+        elif status == 3:
+            return "STATUS_SCANNING"
+        elif status == 4:
+            return "STATUS_CALIBRATING"
 
     def getSensorTargets(self):
         self.wlbt.Trigger()

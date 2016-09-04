@@ -9,10 +9,9 @@ try:
     range = xrange
 except NameError:
     pass
-from os import system
 
 APP_X, APP_Y = 50, 50 # location of top-left corner of window
-CANVAS_LENGTH = 500
+CANVAS_LENGTH = 650
 
 
 class SensorTargetsApp(tk.Frame):
@@ -23,10 +22,12 @@ class SensorTargetsApp(tk.Frame):
         self.wlbtPanel = WalabotPanel(self)
         self.cnfgPanel = ConfigPanel(self)
         self.ctrlPanel = ControlPanel(self)
+        self.trgtsPanel = TargetsPanel(self)
         self.canvasPanel.pack(side=tk.RIGHT, anchor=tk.NE)
         self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.wlbt = Walabot()
 
     def initCycles(self):
@@ -37,6 +38,7 @@ class SensorTargetsApp(tk.Frame):
             params = self.wlbt.getParameters()
             self.wlbtPanel.setParameters(*params) # update entries
             self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
+            self.numOfTargetsToDisplay = self.cnfgPanel.numTargets.get()
             if not params[4]: # if not mti
                 self.ctrlPanel.statusVar.set("STATUS_CALIBRATING")
                 self.update_idletasks()
@@ -47,9 +49,9 @@ class SensorTargetsApp(tk.Frame):
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
-        targets = self.wlbt.getSensorTargets()
-        numToDisplay = self.cnfgPanel.numTargets.get()
-        self.canvasPanel.addTargets(targets, numToDisplay)
+        targets = self.wlbt.getSensorTargets()[:self.numOfTargetsToDisplay]
+        self.canvasPanel.addTargets(targets)
+        self.trgtsPanel.update(targets)
         self.ctrlPanel.statusVar.set("STATUS_SCANNING")
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.startCycles)
@@ -58,6 +60,7 @@ class SensorTargetsApp(tk.Frame):
         self.after_cancel(self.cyclesId)
         self.wlbtPanel.changeEntriesState("normal")
         self.canvasPanel.reset()
+        self.trgtsPanel.reset()
         self.ctrlPanel.statusVar.set("STATUS_IDLE")
 
 
@@ -179,6 +182,7 @@ class ConfigPanel(tk.LabelFrame):
         def __init__(self, master):
             tk.Frame.__init__(self, master)
             tk.Label(self, text="Targets:").pack(side=tk.LEFT)
+            self.maxNum = 4
             self.num = tk.IntVar()
             self.num.set(1)
             radio1 = tk.Radiobutton(self, text="1", variable=self.num, value=1)
@@ -247,10 +251,34 @@ class ControlPanel(tk.LabelFrame):
             self.master.stopCycles()
 
 
+class TargetsPanel(tk.LabelFrame):
+
+    def __init__(self, master):
+        tk.LabelFrame.__init__(self, master, text="Targets Panel")
+        self.targetLabels = []
+        for i in range(self.master.cnfgPanel.numTargets.maxNum):
+            label = tk.Label(self, text="#{}:".format(i+1))
+            label.pack(anchor=tk.W)
+            self.targetLabels.append(label)
+
+    def update(self, targets):
+        for i in range(self.master.numOfTargetsToDisplay):
+            if i < len(targets):
+                txt = "#{}:   x: {:3.0f}   y: {:3.0f}   z: {:3.0f}".format(i+1,
+                    targets[i].xPosCm, targets[i].yPosCm, targets[i].zPosCm)
+                self.targetLabels[i].config(text=txt)
+            else:
+                self.targetLabels[i].config(text="#{}:".format(i+1))
+
+    def reset(self):
+        for i in range(self.master.numOfTargetsToDisplay):
+            self.targetLabels[i].config(text="#{}:".format(i+1))
+
+
 class CanvasPanel(tk.LabelFrame):
 
     def __init__(self, master):
-        tk.LabelFrame.__init__(self, master, text="Sensor Targets")
+        tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
         self.targetsCanvas = TargetsCanvas(self)
         self.targetsCanvas.pack()
 
@@ -258,10 +286,10 @@ class CanvasPanel(tk.LabelFrame):
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
         self.targetsCanvas.drawArenaGrid(self.rMin, self.rMax, self.phi)
 
-    def addTargets(self, targets, numTargets):
+    def addTargets(self, targets):
         if targets:
             self.targetsCanvas.delete("target")
-            self.targetsCanvas.drawTargets(targets, numTargets, self.rMin, self.rMax, self.phi)
+            self.targetsCanvas.drawTargets(targets, self.rMin, self.rMax, self.phi)
 
     def reset(self, *args):
         self.targetsCanvas.delete("all")
@@ -292,9 +320,9 @@ class TargetsCanvas(tk.Canvas):
             self.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
             deg += phi / 3
 
-    def drawTargets(self, targets, numTargets, rMin, rMax, phi):
+    def drawTargets(self, targets, rMin, rMax, phi):
         for i, t in enumerate(targets):
-            if i < numTargets:
+            if i < self.master.master.numOfTargetsToDisplay:
                 x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
                 y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
                 self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")

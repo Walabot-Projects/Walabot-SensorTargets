@@ -31,7 +31,7 @@ class SensorTargetsApp(tk.Frame):
         self.wlbt = Walabot()
 
     def initCycles(self):
-        #self.ctrlPanel.errorVar.set("")
+        self.ctrlPanel.errorVar.set("")
         if self.wlbt.isConnected(): # connection achieved
             self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
             self.update_idletasks()
@@ -114,7 +114,7 @@ class WalabotPanel(tk.LabelFrame):
         def set(self, value):
             self.var.set(value)
 
-        def changeEntryState(self, state):
+        def changeState(self, state):
             self.entry.configure(state=state)
 
     class WalabotParameterMTI(tk.Frame):
@@ -137,7 +137,7 @@ class WalabotPanel(tk.LabelFrame):
         def set(self, value):
             self.mtiVar.set(value)
 
-        def changeButtonsState(self, state):
+        def changeState(self, state):
             self.true.configure(state=state)
             self.false.configure(state=state)
 
@@ -152,15 +152,10 @@ class WalabotPanel(tk.LabelFrame):
         self.pRes = self.WalabotParameter(self, "Phi   Res", 1, 10, 2.0)
         self.thld = self.WalabotParameter(self, "Threshold", 0.1, 100, 15.0)
         self.mti = self.WalabotParameterMTI(self)
-        self.rMin.pack(anchor=tk.W)
-        self.rMax.pack(anchor=tk.W)
-        self.rRes.pack(anchor=tk.W)
-        self.tMax.pack(anchor=tk.W)
-        self.tRes.pack(anchor=tk.W)
-        self.pMax.pack(anchor=tk.W)
-        self.pRes.pack(anchor=tk.W)
-        self.thld.pack(anchor=tk.W)
-        self.mti.pack(anchor=tk.W)
+        self.parameters = (self.rMin, self.rMax, self.rRes, self.tMax,
+            self.tRes, self.pMax, self.pRes, self.thld, self.mti)
+        for param in self.parameters:
+            param.pack(anchor=tk.W)
 
     def getParameters(self):
         rParams = (self.rMin.get(), self.rMax.get(), self.rRes.get())
@@ -181,15 +176,8 @@ class WalabotPanel(tk.LabelFrame):
         self.mti.set(mtiParam)
 
     def changeEntriesState(self, state):
-        self.rMin.changeEntryState(state)
-        self.rMax.changeEntryState(state)
-        self.rRes.changeEntryState(state)
-        self.tMax.changeEntryState(state)
-        self.tRes.changeEntryState(state)
-        self.pMax.changeEntryState(state)
-        self.pRes.changeEntryState(state)
-        self.thld.changeEntryState(state)
-        self.mti.changeButtonsState(state)
+        for param in self.parameters:
+            param.changeState(state)
 
 
 class ConfigPanel(tk.LabelFrame):

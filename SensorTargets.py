@@ -326,6 +326,7 @@ class TargetsCanvas(tk.Canvas):
                 x = CANVAS_LENGTH / 2 * (t.yPosCm / (rMax * sin(radians(phi))) + 1)
                 y = CANVAS_LENGTH * (1 - t.zPosCm / rMax)
                 self.create_oval(x-10, y-10, x+10, y+10, fill="red", tags="target")
+                self.create_text(x, y, text="{}".format(i+1), tags="target")
 
 
 class Walabot:

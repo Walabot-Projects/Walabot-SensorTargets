@@ -55,7 +55,13 @@ class SensorTargetsApp(tk.Frame):
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
     def startCycles(self):
-        targets = self.wlbt.getSensorTargets()[:self.numOfTargetsToDisplay]
+        try:
+            targets = self.wlbt.getSensorTargets()
+        except wlbt.WalabotError as err:
+            self.ctrlPanel.errorVar.set(str(err))
+            self.stopCycles()
+            return
+        targets = targets[:self.numOfTargetsToDisplay]
         self.canvasPanel.addTargets(targets)
         self.trgtsPanel.update(targets)
         self.ctrlPanel.statusVar.set("STATUS_SCANNING")

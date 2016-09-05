@@ -147,7 +147,7 @@ class WalabotPanel(tk.LabelFrame):
             self.entry.configure(state=state)
 
     class WalabotParameterMTI(tk.Frame):
-        """ The frame that the Walabot MTI parameter line.
+        """ The frame that control the Walabot MTI parameter line.
         """
         def __init__(self, master):
             """ Init the MTI line (label, radiobuttons).
@@ -228,10 +228,16 @@ class WalabotPanel(tk.LabelFrame):
 
 
 class ConfigPanel(tk.LabelFrame):
+    """ The frame that sets the app settings.
+    """
 
     class NumOfTargets(tk.Frame):
+        """ The frame that control the number-of-targets line.
+        """
 
         def __init__(self, master):
+            """ Init the line, including a label and radiobuttons.
+            """
             tk.Frame.__init__(self, master)
             tk.Label(self, text="Targets:").pack(side=tk.LEFT)
             self.maxNum = 5
@@ -245,18 +251,28 @@ class ConfigPanel(tk.LabelFrame):
                 self.radios.append(radio)
 
         def get(self):
+            """ Return the value of the pressed radiobutton.
+            """
             return self.num.get()
 
         def set(self, value):
+            """ Set the pressed radiobutton according to a given value.
+            """
             self.num.set(value)
 
         def changeButtonsState(self, state):
+            """ Change the radiobuttons state according to a given one.
+            """
             for radio in self.radios:
                 radio.configure(state=state)
 
     class ArenaDividors(tk.Frame):
+        """ The frame that control the number of arena dividors.
+        """
 
         def __init__(self, master):
+            """ Init the line, including a label and radiobuttons.
+            """
             tk.Frame.__init__(self, master)
             tk.Label(self, text="Arena Dividors:").pack(side=tk.LEFT)
             self.maxNum = 4
@@ -270,16 +286,24 @@ class ConfigPanel(tk.LabelFrame):
                 self.radios.append(radio)
 
         def get(self):
+            """ Return the value of the pressed radiobutton.
+            """
             return self.num.get()
 
         def set(self, value):
+            """ Set the pressed radiobutton according to a given value.
+            """
             self.num.set(value)
 
         def changeButtonsState(self, state):
+            """ Change the radiobuttons state according to a given one.
+            """
             for radio in self.radios:
                 radio.configure(state=state)
 
     def __init__(self, master):
+        """ Init the configurations lines.
+        """
         tk.LabelFrame.__init__(self, master, text="App Settings")
         self.numTargets = self.NumOfTargets(self)
         self.arenaDividors = self.ArenaDividors(self)
@@ -287,13 +311,20 @@ class ConfigPanel(tk.LabelFrame):
         self.arenaDividors.pack(anchor=tk.W)
 
     def changeConfigsState(self, state):
+        """ Change the state of all interactive components according to a
+            given one.
+        """
         self.numTargets.changeButtonsState(state)
         self.arenaDividors.changeButtonsState(state)
 
 
 class ControlPanel(tk.LabelFrame):
+    """ The frame that set the control panel.
+    """
 
     def __init__(self, master):
+        """ Init the control panel (buttons, status frames).
+        """
         tk.LabelFrame.__init__(self, master, text="Control Panel")
         self.buttonsFrame = tk.Frame(self)
         self.runButton, self.stopButton = self.setButtons(self.buttonsFrame)
@@ -309,6 +340,8 @@ class ControlPanel(tk.LabelFrame):
         self.fpsFrame.grid(row=3, columnspan=2, sticky=tk.W)
 
     def setButtons(self, frame):
+        """ Create the 'start' and 'stop' buttons.
+        """
         runButton = tk.Button(frame, text="Start", command=self.start)
         stopButton = tk.Button(frame, text="Stop", command=self.stop)
         runButton.grid(row=0, column=0)
@@ -316,6 +349,8 @@ class ControlPanel(tk.LabelFrame):
         return runButton, stopButton
 
     def setVar(self, frame, varText, default):
+        """ Create a status label using given parameters.
+        """
         strVar = tk.StringVar()
         strVar.set(default)
         tk.Label(frame, text=(varText).ljust(12)).grid(row=0, column=0)
@@ -323,13 +358,19 @@ class ControlPanel(tk.LabelFrame):
         return strVar
 
     def start(self):
+        """ Called when the 'start' button gets pressed and init the app loop.
+        """
         self.master.initAppLoop()
 
     def stop(self):
+        """ Called when the 'stop' button gets pressed, and stop the app loop.
+        """
         if hasattr(self.master, "cyclesId"):
             self.master.stopCycles()
 
     def changeButtonsState(self, state):
+        """ Change the buttons state according to a given one.
+        """
         self.runButton.configure(state=state)
 
 

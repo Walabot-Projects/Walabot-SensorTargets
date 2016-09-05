@@ -48,7 +48,7 @@ class SensorTargetsApp(tk.Frame):
                 self.wlbt.setParameters(*self.wlbtPanel.getParameters())
             except wlbt.WalabotError as err:
                 self.ctrlPanel.errorVar.set(str(err))
-                self.stopCycles()
+                self.stopLoop()
                 return
             params = self.wlbt.getParameters()
             self.wlbtPanel.setParameters(*params) # update entries
@@ -74,7 +74,7 @@ class SensorTargetsApp(tk.Frame):
             targets = self.wlbt.getSensorTargets()
         except wlbt.WalabotError as err:
             self.ctrlPanel.errorVar.set(str(err))
-            self.stopCycles()
+            self.stopLoop()
             return
         targets = targets[:self.numOfTargetsToDisplay]
         self.canvasPanel.addTargets(targets)
@@ -82,7 +82,7 @@ class SensorTargetsApp(tk.Frame):
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
         self.cyclesId = self.after_idle(self.loop)
 
-    def stopCycles(self):
+    def stopLoop(self):
         """ Kills the loop function and reset the relevant app components.
         """
         self.after_cancel(self.cyclesId)
@@ -367,7 +367,7 @@ class ControlPanel(tk.LabelFrame):
         """ Called when the 'stop' button gets pressed, and stop the app loop.
         """
         if hasattr(self.master, "cyclesId"):
-            self.master.stopCycles()
+            self.master.stopLoop()
 
     def changeButtonsState(self, state):
         """ Change the buttons state according to a given one.
@@ -436,7 +436,7 @@ class CanvasPanel(tk.LabelFrame):
         startDeg = 90 - self.phi
         extentDeg = self.phi * 2
         self.canvas.create_arc(x0, y0, x1, y1, start=startDeg,
-            extent=extentDeg, fill="green", outline="#AAA")
+            extent=extentDeg, fill="green4", outline="#AAA")
 
     def drawArenaDividors(self):
         """ Draw the arena dividors according to the number that was set in

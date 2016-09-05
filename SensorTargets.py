@@ -5,7 +5,7 @@ try: # for Python 2
     import Tkinter as tk
 except ImportError: # for Python 3
     import tkinter as tk
-try:
+try: # for Python 2
     range = xrange
 except NameError:
     pass
@@ -17,6 +17,8 @@ CANVAS_LENGTH = 650
 class SensorTargetsApp(tk.Frame):
 
     def __init__(self, master):
+        """ Init the GUI components and the Walabot API.
+        """
         tk.Frame.__init__(self, master)
         self.canvasPanel = CanvasPanel(self)
         self.wlbtPanel = WalabotPanel(self)
@@ -30,7 +32,12 @@ class SensorTargetsApp(tk.Frame):
         self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
         self.wlbt = Walabot()
 
-    def initCycles(self):
+    def initAppLoop(self):
+        """ Executed when 'Start' button gets pressed.
+            Connect to the Walabot device, set it's arena parameters according
+            to one's given by the user, calibrate if needed and start calls
+            the loop function.
+        """
         self.ctrlPanel.errorVar.set("")
         if self.wlbt.isConnected(): # connection achieved
             self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
@@ -49,14 +56,18 @@ class SensorTargetsApp(tk.Frame):
                 self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
                 self.update_idletasks()
                 self.wlbt.calibrate()
+            self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
             self.wlbtPanel.changeEntriesState("disabled")
             self.cnfgPanel.changeConfigsState("disabled")
             self.ctrlPanel.changeButtonsState("disabled")
-            self.startCycles()
+            self.loop()
         else:
             self.ctrlPanel.statusVar.set("STATUS_DISCONNECTED")
 
-    def startCycles(self):
+    def loop(self):
+        """ Triggers the Walabot, get the Sensor targets, and update the
+            canvas and other components accordingly.
+        """
         try:
             targets = self.wlbt.getSensorTargets()
         except wlbt.WalabotError as err:
@@ -66,11 +77,12 @@ class SensorTargetsApp(tk.Frame):
         targets = targets[:self.numOfTargetsToDisplay]
         self.canvasPanel.addTargets(targets)
         self.trgtsPanel.update(targets)
-        self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
         self.ctrlPanel.fpsVar.set((int(self.wlbt.getFps())))
-        self.cyclesId = self.after_idle(self.startCycles)
+        self.cyclesId = self.after_idle(self.loop)
 
     def stopCycles(self):
+        """ Kills the loop function and reset the relevant app components.
+        """
         self.after_cancel(self.cyclesId)
         self.wlbtPanel.changeEntriesState("normal")
         self.cnfgPanel.changeConfigsState("normal")
@@ -276,7 +288,7 @@ class ControlPanel(tk.LabelFrame):
         return strVar
 
     def start(self):
-        self.master.initCycles()
+        self.master.initAppLoop()
 
     def stop(self):
         if hasattr(self.master, "cyclesId"):
@@ -366,7 +378,6 @@ class Walabot:
         self.wlbt = wlbt
         self.wlbt.Init()
         self.wlbt.SetSettingsFolder()
-        self.distance = lambda t: (t.xPosCm**2+t.yPosCm**2+t.zPosCm**2)**0.5
 
     def isConnected(self):
         try:
@@ -415,8 +426,7 @@ class Walabot:
 
     def getSensorTargets(self):
         self.wlbt.Trigger()
-
-        return sorted(self.wlbt.GetSensorTargets(), key=self.distance)
+        return self.wlbt.GetSensorTargets()
 
     def getFps(self):
         return self.wlbt.GetAdvancedParameter("FrameRate")

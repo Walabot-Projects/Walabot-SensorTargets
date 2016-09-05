@@ -11,10 +11,12 @@ except NameError:
     pass
 
 APP_X, APP_Y = 50, 50 # location of top-left corner of window
-CANVAS_LENGTH = 650
+CANVAS_LENGTH = 650 # in pixels.
 
 
 class SensorTargetsApp(tk.Frame):
+    """ Main app class.
+    """
 
     def __init__(self, master):
         """ Init the GUI components and the Walabot API.
@@ -94,10 +96,16 @@ class SensorTargetsApp(tk.Frame):
 
 
 class WalabotPanel(tk.LabelFrame):
+    """ The frame that sets the Walabot settings.
+    """
 
     class WalabotParameter(tk.Frame):
+        """ The frame that sets each Walabot parameter line.
+        """
 
         def __init__(self, master, varVal, minVal, maxVal, defaultVal):
+            """ Init the Labels (parameter name, min/max value) and entry.
+            """
             tk.Frame.__init__(self, master)
             tk.Label(self, text=varVal).pack(side=tk.LEFT, padx=(0, 5), pady=1)
             self.minVal, self.maxVal = minVal, maxVal
@@ -105,12 +113,15 @@ class WalabotPanel(tk.LabelFrame):
             self.var.set(defaultVal)
             self.entry = tk.Entry(self, width=7, textvariable=self.var)
             self.entry.pack(side=tk.LEFT)
-            self.var.trace("w", lambda a, b, c, var=self.var:
-                self.validate())
+            self.var.trace("w", lambda a, b, c, var=self.var: self.validate())
             txt = "[{}, {}]".format(minVal, maxVal)
             tk.Label(self, text=txt).pack(side=tk.LEFT, padx=(5, 20), pady=1)
 
         def validate(self):
+            """ Checks that the entered value is a valid number and between
+                the min/max values. Change the font color of the value to red
+                if False, else to black (normal).
+            """
             num = self.var.get()
             try:
                 num = float(num)
@@ -121,17 +132,26 @@ class WalabotPanel(tk.LabelFrame):
                 self.entry.config(fg="red"); return
 
         def get(self):
+            """ Returns the entry value as a float.
+            """
             return float(self.var.get())
 
         def set(self, value):
+            """ Sets the entry value according to a given one.
+            """
             self.var.set(value)
 
         def changeState(self, state):
+            """ Change the entry state according to a given one.
+            """
             self.entry.configure(state=state)
 
     class WalabotParameterMTI(tk.Frame):
-
+        """ The frame that the Walabot MTI parameter line.
+        """
         def __init__(self, master):
+            """ Init the MTI line (label, radiobuttons).
+            """
             tk.Frame.__init__(self, master)
             tk.Label(self, text="MTI      ").pack(side=tk.LEFT)
             self.mtiVar = tk.IntVar()
@@ -144,16 +164,24 @@ class WalabotPanel(tk.LabelFrame):
             self.false.pack(side=tk.LEFT)
 
         def get(self):
+            """ Returns the value of the pressed radiobutton.
+            """
             return self.mtiVar.get()
 
         def set(self, value):
+            """ Sets the pressed radiobutton according to a given value.
+            """
             self.mtiVar.set(value)
 
         def changeState(self, state):
+            """ Change the state of the radiobuttons according to a given one.
+            """
             self.true.configure(state=state)
             self.false.configure(state=state)
 
     def __init__(self, master):
+        """ Init the parameters lines.
+        """
         tk.LabelFrame.__init__(self, master, text="Walabot Settings")
         self.rMin = self.WalabotParameter(self, "R     Min", 1, 1000, 10.0)
         self.rMax = self.WalabotParameter(self, "R     Max", 1, 1000, 100.0)
@@ -170,6 +198,8 @@ class WalabotPanel(tk.LabelFrame):
             param.pack(anchor=tk.W)
 
     def getParameters(self):
+        """ Return the values of all the parameters entries/radiobuttons.
+        """
         rParams = (self.rMin.get(), self.rMax.get(), self.rRes.get())
         tParams = (-self.tMax.get(), self.tMax.get(), self.tRes.get())
         pParams = (-self.pMax.get(), self.pMax.get(), self.pRes.get())
@@ -177,6 +207,8 @@ class WalabotPanel(tk.LabelFrame):
         return rParams, tParams, pParams, thldParam, mtiParam
 
     def setParameters(self, rParams, tParams, pParams, thldParam, mtiParam):
+        """ Set the values of all the parameters according to given ones.
+        """
         self.rMin.set(rParams[0])
         self.rMax.set(rParams[1])
         self.rRes.set(rParams[2])
@@ -188,6 +220,9 @@ class WalabotPanel(tk.LabelFrame):
         self.mti.set(mtiParam)
 
     def changeEntriesState(self, state):
+        """ Change the state of all the interactive components (entries,
+            radiobuttons) according to a given one.
+        """
         for param in self.parameters:
             param.changeState(state)
 

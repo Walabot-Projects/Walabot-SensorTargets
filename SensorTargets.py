@@ -86,6 +86,7 @@ class SensorTargetsApp(tk.Frame):
         """ Kills the loop function and reset the relevant app components.
         """
         self.after_cancel(self.cyclesId)
+        #self.wlbt.stopAndDisconnect()
         self.wlbtPanel.changeEntriesState("normal")
         self.cnfgPanel.changeConfigsState("normal")
         self.ctrlPanel.changeButtonsState("normal")
@@ -375,8 +376,12 @@ class ControlPanel(tk.LabelFrame):
 
 
 class TargetsPanel(tk.LabelFrame):
+    """ The frame that shows the targets coordinates.
+    """
 
     def __init__(self, master):
+        """ Init the targets frame.
+        """
         tk.LabelFrame.__init__(self, master, text="Targets Panel")
         self.targetLabels = []
         for i in range(self.master.cnfgPanel.numTargets.maxNum):
@@ -385,6 +390,8 @@ class TargetsPanel(tk.LabelFrame):
             self.targetLabels.append(label)
 
     def update(self, targets):
+        """ update the targets frame according to the given targets.
+        """
         for i in range(self.master.numOfTargetsToDisplay):
             if i < len(targets):
                 txt = "#{}:   x: {:3.0f}   y: {:3.0f}   z: {:3.0f}".format(i+1,
@@ -394,24 +401,34 @@ class TargetsPanel(tk.LabelFrame):
                 self.targetLabels[i].config(text="#{}:".format(i+1))
 
     def reset(self):
+        """ Resets the targets frame.
+        """
         for i in range(self.master.numOfTargetsToDisplay):
             self.targetLabels[i].config(text="#{}:".format(i+1))
 
 
 class CanvasPanel(tk.LabelFrame):
+    """ The frame the control the arena canvas and displat the targets.
+    """
 
     def __init__(self, master):
+        """ Init a black canvas.
+        """
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
         self.canvas = tk.Canvas(self, background="black",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH)
         self.canvas.pack()
 
     def initArenaGrid(self, r, theta, phi, threshold, mti):
+        """ Draws arena grid (including divisors).
+        """
         self.rMin, self.rMax, self.phi = r[0], r[1], phi[1]
         self.drawArenaGrid()
         self.drawArenaDividors()
 
     def drawArenaGrid(self):
+        """ Draw the arena grid using the canvas 'create_arc' function.
+        """
         x0 = -CANVAS_LENGTH * (1/sin(radians(self.phi)) - 1) / 2
         y0 = 0
         x1 = CANVAS_LENGTH / 2 * (1/sin(radians(self.phi)) + 1)
@@ -422,6 +439,9 @@ class CanvasPanel(tk.LabelFrame):
             extent=extentDeg, fill="green", outline="#AAA")
 
     def drawArenaDividors(self):
+        """ Draw the arena dividors according to the number that was set in
+            the config panel.
+        """
         x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
         deg = 0
         arenaDividors = self.master.cnfgPanel.arenaDividors.get()
@@ -434,6 +454,9 @@ class CanvasPanel(tk.LabelFrame):
             deg += self.phi / arenaDividors
 
     def addTargets(self, targets):
+        """ Draw the given targets on top of the canvas. Remove the older
+            targets first.
+        """
         self.canvas.delete("target")
         for i, t in enumerate(targets):
             if i < self.master.numOfTargetsToDisplay:
@@ -445,17 +468,25 @@ class CanvasPanel(tk.LabelFrame):
                     tags="target")
 
     def reset(self, *args):
+        """ Remove all the canvas components, leaving it black.
+        """
         self.canvas.delete("all")
 
 
 class Walabot:
+    """ Control the Walabot using the Walabot API.
+    """
 
     def __init__(self):
+        """ Init the Walabot API.
+        """
         self.wlbt = wlbt
         self.wlbt.Init()
         self.wlbt.SetSettingsFolder()
 
     def isConnected(self):
+        """ Try to connect the Walabot device. Return True/False accordingly.
+        """
         try:
             self.wlbt.ConnectAny()
         except self.wlbt.WalabotError as err:
@@ -466,6 +497,8 @@ class Walabot:
         return True
 
     def getParameters(self):
+        """ Get the arena parameters from the Walabot API.
+        """
         r = self.wlbt.GetArenaR()
         theta = self.wlbt.GetArenaTheta()
         phi = self.wlbt.GetArenaPhi()
@@ -474,6 +507,8 @@ class Walabot:
         return r, theta, phi, threshold, mti
 
     def setParameters(self, r, theta, phi, threshold, mti):
+        """ Set the arena Parameters according given ones.
+        """
         self.wlbt.SetProfile(self.wlbt.PROF_SENSOR)
         self.wlbt.SetArenaR(*r)
         self.wlbt.SetArenaTheta(*theta)
@@ -483,11 +518,15 @@ class Walabot:
         self.wlbt.Start()
 
     def calibrate(self):
+        """ Calibrate the Walabot.
+        """
         self.wlbt.StartCalibration()
         while self.wlbt.GetStatus()[0] == self.wlbt.STATUS_CALIBRATING:
             self.wlbt.Trigger()
 
     def getStatusString(self):
+        """ Return the Walabot status as a string.
+        """
         status = self.wlbt.GetStatus()[0]
         if status == 0:
             return "STATUS_DISCONNECTED"
@@ -501,18 +540,27 @@ class Walabot:
             return "STATUS_CALIBRATING"
 
     def getSensorTargets(self):
+        """ Trigger the Walabot, retrive the sensor targets and return them.
+        """
         self.wlbt.Trigger()
         return self.wlbt.GetSensorTargets()
 
     def getFps(self):
+        """ Return the Walabot FPS (internally, from the API).
+        """
         return self.wlbt.GetAdvancedParameter("FrameRate")
 
     def stopAndDisconnect(self):
+        """ Stop and disconnect from the Walabot.
+        """
         self.wlbt.Stop()
         self.wlbt.Disconnect()
 
 
 def sensorTargets():
+    """ Main app function. Init the main app class, configure the window
+        and start the mainloop.
+    """
     root = tk.Tk()
     root.title("Walabot - Sensor Targets")
     iconFile = tk.PhotoImage(file="walabot-icon.gif")

@@ -453,7 +453,7 @@ class CanvasPanel(tk.LabelFrame):
         """ Init a black canvas.
         """
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
-        self.canvas = tk.Canvas(self, background="black",
+        self.canvas = tk.Canvas(self, background="light gray",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH)
         self.canvas.pack()
 
@@ -474,7 +474,7 @@ class CanvasPanel(tk.LabelFrame):
         startDeg = 90 - self.phi
         extentDeg = self.phi * 2
         self.canvas.create_arc(x0, y0, x1, y1, start=startDeg,
-            extent=extentDeg, fill="green4", outline="#AAA")
+            extent=extentDeg, fill="white", width=2)
 
     def drawArenaDividors(self):
         """ Draw the arena dividors according to the number that was set in
@@ -500,7 +500,7 @@ class CanvasPanel(tk.LabelFrame):
             if i < self.master.numOfTargetsToDisplay:
                 x = CANVAS_LENGTH / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
                 y = CANVAS_LENGTH * (1 - t.zPosCm / self.rMax)
-                self.canvas.create_oval(x-10, y-10, x+10, y+10, fill="red",
+                self.canvas.create_oval(x-10, y-10, x+10, y+10, fill="blue",
                     tags="target")
                 self.canvas.create_text(x, y, text="{}".format(i+1),
                     tags="target")

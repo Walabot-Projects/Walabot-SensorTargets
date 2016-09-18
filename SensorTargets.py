@@ -29,10 +29,10 @@ class SensorTargetsApp(tk.Frame):
         self.trgtsPanel = TargetsPanel(self)
         self.ctrlPanel = ControlPanel(self)
         self.canvasPanel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=tk.YES)
-        self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
-        self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
-        self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
-        self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
+        self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
+        self.ctrlPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH)
         self.wlbt = Walabot()
 
     def initAppLoop(self):
@@ -456,7 +456,7 @@ class CanvasPanel(tk.LabelFrame):
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
         self.canvas = tk.Canvas(self, background="light gray",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH, highlightthickness=0)
-        self.canvas.bind("<Configure>", self.on_resize)
+        self.canvas.bind("<Configure>", self.on_resize) # TODO: experimental, not working!
         self.height = self.winfo_reqheight()
         self.width = self.winfo_reqwidth()
         self.canvas.pack(fill=tk.BOTH, expand=tk.YES)
@@ -466,7 +466,6 @@ class CanvasPanel(tk.LabelFrame):
         hscale = event.height / self.height
         self.width = event.width
         self.height = event.height
-        self.canvas.config(width=self.width, height=self.height)
         self.canvas.scale("all", 0, 0, wscale, hscale)
 
     def initArenaGrid(self, r, theta, phi, threshold, mti):
@@ -622,7 +621,7 @@ def sensorTargets():
     iconFile = tk.PhotoImage(file="walabot-icon.gif")
     root.tk.call("wm", "iconphoto", root._w, iconFile) # set app icon
     root.option_add("*Font", "TkFixedFont")
-    SensorTargetsApp(root).pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+    SensorTargetsApp(root).pack(fill=tk.BOTH, expand=tk.YES)
     root.geometry("+{}+{}".format(APP_X, APP_Y)) # set window location
     root.update()
     root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())

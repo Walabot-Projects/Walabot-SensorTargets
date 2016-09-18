@@ -28,7 +28,7 @@ class SensorTargetsApp(tk.Frame):
         self.cnfgPanel = ConfigPanel(self)
         self.trgtsPanel = TargetsPanel(self)
         self.ctrlPanel = ControlPanel(self)
-        self.canvasPanel.pack(side=tk.RIGHT, anchor=tk.NE)
+        self.canvasPanel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=tk.YES)
         self.wlbtPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
         self.cnfgPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
         self.trgtsPanel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, pady=10)
@@ -455,8 +455,19 @@ class CanvasPanel(tk.LabelFrame):
         """
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
         self.canvas = tk.Canvas(self, background="light gray",
-            width=CANVAS_LENGTH, height=CANVAS_LENGTH)
-        self.canvas.pack()
+            width=CANVAS_LENGTH, height=CANVAS_LENGTH, highlightthickness=0)
+        self.canvas.bind("<Configure>", self.on_resize)
+        self.height = self.winfo_reqheight()
+        self.width = self.winfo_reqwidth()
+        self.canvas.pack(fill=tk.BOTH, expand=tk.YES)
+
+    def on_resize(self,event):
+        wscale = event.width / self.width
+        hscale = event.height / self.height
+        self.width = event.width
+        self.height = event.height
+        self.canvas.config(width=self.width, height=self.height)
+        self.canvas.scale("all", 0, 0, wscale, hscale)
 
     def initArenaGrid(self, r, theta, phi, threshold, mti):
         """ Draws arena grid (including divisors).

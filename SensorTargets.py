@@ -11,8 +11,9 @@ try: # for Python 2
 except NameError:
     pass
 
-APP_X, APP_Y = 50, 50 # location of top-left corner of window
-CANVAS_LENGTH = 650 # in pixels.
+APP_X, APP_Y = 50, 50 # location of top-left corner of app window
+CANVAS_LENGTH = 650 # in pixels
+COLORS = ["blue", "green", "red", "yellow", "purple"] # of different targets
 
 
 class SensorTargetsApp(tk.Frame):
@@ -456,7 +457,7 @@ class CanvasPanel(tk.LabelFrame):
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
         self.canvas = tk.Canvas(self, background="light gray",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH, highlightthickness=0)
-        self.canvas.bind("<Configure>", self.on_resize) # TODO: experimental, not working!
+        self.canvas.bind("<Configure>", self.on_resize)
         self.height = self.winfo_reqheight()
         self.width = self.winfo_reqwidth()
         self.canvas.pack(fill=tk.BOTH, expand=tk.YES)
@@ -511,8 +512,8 @@ class CanvasPanel(tk.LabelFrame):
             if i < self.master.numOfTargetsToDisplay:
                 x = self.width / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
                 y = self.height * (1 - t.zPosCm / self.rMax)
-                self.canvas.create_oval(x-10, y-10, x+10, y+10, fill="blue",
-                    tags="target")
+                self.canvas.create_oval(x-10, y-10, x+10, y+10,
+                    fill=COLORS[int(t[3])], tags="target")
                 self.canvas.create_text(x, y, text="{}".format(i+1),
                     tags="target")
 

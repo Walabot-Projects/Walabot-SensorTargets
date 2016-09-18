@@ -276,7 +276,7 @@ class ConfigPanel(tk.LabelFrame):
             """
             tk.Frame.__init__(self, master)
             tk.Label(self, text="Targets:").pack(side=tk.LEFT)
-            self.maxNum = 5
+            self.maxNum = 4
             self.num = tk.IntVar()
             self.num.set(1)
             self.radios = []

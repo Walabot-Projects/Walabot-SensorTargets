@@ -478,10 +478,10 @@ class CanvasPanel(tk.LabelFrame):
     def drawArenaGrid(self):
         """ Draw the arena grid using the canvas 'create_arc' function.
         """
-        x0 = -CANVAS_LENGTH * (1/sin(radians(self.phi)) - 1) / 2
+        x0 = -self.width * (1/sin(radians(self.phi)) - 1) / 2
         y0 = 0
-        x1 = CANVAS_LENGTH / 2 * (1/sin(radians(self.phi)) + 1)
-        y1 = CANVAS_LENGTH * 2
+        x1 = self.width / 2 * (1/sin(radians(self.phi)) + 1)
+        y1 = self.height * 2
         startDeg = 90 - self.phi
         extentDeg = self.phi * 2
         self.canvas.create_arc(x0, y0, x1, y1, start=startDeg,
@@ -491,13 +491,13 @@ class CanvasPanel(tk.LabelFrame):
         """ Draw the arena dividors according to the number that was set in
             the config panel.
         """
-        x0, y0 = CANVAS_LENGTH / 2, CANVAS_LENGTH
+        x0, y0 = self.width / 2, self.height
         deg = 0
         arenaDividors = self.master.cnfgPanel.arenaDividors.get()
         while deg < self.phi:
-            x1 = CANVAS_LENGTH / 2 * (sin(radians(deg))/sin(radians(self.phi)) + 1)
-            x2 = CANVAS_LENGTH / 2 * (sin(radians(-deg))/sin(radians(self.phi)) + 1)
-            y1 = CANVAS_LENGTH * (1 - cos(radians(deg)))
+            x1 = self.width / 2 * (sin(radians(deg))/sin(radians(self.phi)) + 1)
+            x2 = self.width / 2 * (sin(radians(-deg))/sin(radians(self.phi)) + 1)
+            y1 = self.height * (1 - cos(radians(deg)))
             self.canvas.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
             self.canvas.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
             deg += self.phi / arenaDividors
@@ -509,8 +509,8 @@ class CanvasPanel(tk.LabelFrame):
         self.canvas.delete("target")
         for i, t in enumerate(targets):
             if i < self.master.numOfTargetsToDisplay:
-                x = CANVAS_LENGTH / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
-                y = CANVAS_LENGTH * (1 - t.zPosCm / self.rMax)
+                x = self.width / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
+                y = self.height * (1 - t.zPosCm / self.rMax)
                 self.canvas.create_oval(x-10, y-10, x+10, y+10, fill="blue",
                     tags="target")
                 self.canvas.create_text(x, y, text="{}".format(i+1),

@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 from math import sin, cos, radians
-import WalabotAPI as wlbt
+import WalabotAPI
+import VayyarTracker
 try: # for Python 2
     import Tkinter as tk
 except ImportError: # for Python 3
@@ -46,9 +47,8 @@ class SensorTargetsApp(tk.Frame):
             self.update_idletasks()
             try:
                 self.wlbt.setParameters(*self.wlbtPanel.getParameters())
-            except wlbt.WalabotError as err:
+            except WalabotAPI.WalabotError as err:
                 self.ctrlPanel.errorVar.set(str(err))
-                self.stopLoop()
                 return
             params = self.wlbt.getParameters()
             self.wlbtPanel.setParameters(*params) # update entries
@@ -71,8 +71,8 @@ class SensorTargetsApp(tk.Frame):
             canvas and other components accordingly.
         """
         try:
-            targets = self.wlbt.getSensorTargets()
-        except wlbt.WalabotError as err:
+            targets = self.wlbt.getTargets(self.cnfgPanel.trackerType.get())
+        except WalabotAPI.WalabotError as err:
             self.ctrlPanel.errorVar.set(str(err))
             self.stopLoop()
             return
@@ -246,7 +246,7 @@ class ConfigPanel(tk.LabelFrame):
             self.num.set(0)
             r1 = tk.Radiobutton(self, text="SDK", variable=self.num, value=0)
             r1.pack(side=tk.LEFT)
-            r2 = tk.Radiobutton(self, text="Kalman Filter", variable=self.num,
+            r2 = tk.Radiobutton(self, text="Vayyar Tracker", variable=self.num,
                 value=1)
             r2.pack(side=tk.LEFT)
             self.radios = [r1, r2]
@@ -355,6 +355,7 @@ class ConfigPanel(tk.LabelFrame):
         """
         self.numTargets.changeButtonsState(state)
         self.arenaDividors.changeButtonsState(state)
+        self.trackerType.changeButtonsState(state)
 
 
 class ControlPanel(tk.LabelFrame):
@@ -518,9 +519,10 @@ class Walabot:
     def __init__(self):
         """ Init the Walabot API.
         """
-        self.wlbt = wlbt
+        self.wlbt = WalabotAPI
         self.wlbt.Init()
         self.wlbt.SetSettingsFolder()
+        self.vt = VayyarTracker
 
     def isConnected(self):
         """ Try to connect the Walabot device. Return True/False accordingly.
@@ -553,6 +555,7 @@ class Walabot:
         self.wlbt.SetArenaPhi(*phi)
         self.wlbt.SetThreshold(threshold)
         self.wlbt.SetDynamicImageFilter(mti)
+        self.vt.initTracker(self.wlbt)
         self.wlbt.Start()
 
     def calibrate(self):
@@ -577,11 +580,15 @@ class Walabot:
         elif status == 4:
             return "STATUS_CALIBRATING"
 
-    def getSensorTargets(self):
-        """ Trigger the Walabot, retrive the sensor targets and return them.
+    def getTargets(self, trackerType):
+        """ Trigger the Walabot, retrive the targets according to the desired
+            tracker given.
         """
         self.wlbt.Trigger()
-        return self.wlbt.GetSensorTargets()
+        if trackerType:
+            return self.vt.getTrackerState(self.wlbt)
+        else:
+            return self.wlbt.GetSensorTargets()
 
     def getFps(self):
         """ Return the Walabot FPS (internally, from the API).

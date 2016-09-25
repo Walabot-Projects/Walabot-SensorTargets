@@ -2,18 +2,19 @@ from __future__ import print_function, division
 from math import sin, cos, radians
 import WalabotAPI
 import VayyarTracker
-try: # for Python 2
+try:  # for Python 2
     import Tkinter as tk
-except ImportError: # for Python 3
+except ImportError:  # for Python 3
     import tkinter as tk
-try: # for Python 2
+try:  # for Python 2
     range = xrange
 except NameError:
     pass
 
-APP_X, APP_Y = 50, 50 # location of top-left corner of app window
-CANVAS_LENGTH = 650 # in pixels
-COLORS = ["blue", "green", "red", "yellow", "purple"] # of different targets
+
+APP_X, APP_Y = 50, 50  # location of top-left corner of app window
+CANVAS_LENGTH = 650  # in pixels
+COLORS = ["blue", "green", "red", "yellow", "purple"]  # of different targets
 
 
 class SensorTargetsApp(tk.Frame):
@@ -43,7 +44,7 @@ class SensorTargetsApp(tk.Frame):
             the loop function.
         """
         self.ctrlPanel.errorVar.set("")
-        if self.wlbt.isConnected(): # connection achieved
+        if self.wlbt.isConnected():  # connection achieved
             self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
             self.update_idletasks()
             try:
@@ -52,10 +53,10 @@ class SensorTargetsApp(tk.Frame):
                 self.ctrlPanel.errorVar.set(str(err))
                 return
             params = self.wlbt.getParameters()
-            self.wlbtPanel.setParameters(*params) # update entries
-            self.canvasPanel.initArenaGrid(*params) # but only needs R and Phi
+            self.wlbtPanel.setParameters(*params)  # update entries
+            self.canvasPanel.initArenaGrid(*params)  # but only needs R and Phi
             self.numOfTargetsToDisplay = self.cnfgPanel.numTargets.get()
-            if not params[4]: # if not mti
+            if not params[4]:  # if not mti
                 self.ctrlPanel.statusVar.set(self.wlbt.getStatusString())
                 self.update_idletasks()
                 self.wlbt.calibrate()
@@ -87,7 +88,7 @@ class SensorTargetsApp(tk.Frame):
         """ Kills the loop function and reset the relevant app components.
         """
         self.after_cancel(self.cyclesId)
-        #self.wlbt.stopAndDisconnect()
+        # self.wlbt.stopAndDisconnect()
         self.wlbtPanel.changeEntriesState("normal")
         self.cnfgPanel.changeConfigsState("normal")
         self.ctrlPanel.changeButtonsState("normal")
@@ -128,10 +129,12 @@ class WalabotPanel(tk.LabelFrame):
             try:
                 num = float(num)
                 if num < self.minVal or num > self.maxVal:
-                    self.entry.config(fg="red"); return
+                    self.entry.config(fg="red")
+                    return
                 self.entry.config(fg="gray1")
             except ValueError:
-                self.entry.config(fg="red"); return
+                self.entry.config(fg="red")
+                return
 
         def get(self):
             """ Returns the entry value as a float.
@@ -158,10 +161,10 @@ class WalabotPanel(tk.LabelFrame):
             tk.Label(self, text="MTI      ").pack(side=tk.LEFT)
             self.mtiVar = tk.IntVar()
             self.mtiVar.set(0)
-            self.true = tk.Radiobutton(self, text="True",
-                variable=self.mtiVar, value=2)
-            self.false = tk.Radiobutton(self, text="False",
-                variable=self.mtiVar, value=0)
+            self.true = tk.Radiobutton(
+                self, text="True", variable=self.mtiVar, value=2)
+            self.false = tk.Radiobutton(
+                self, text="False", variable=self.mtiVar, value=0)
             self.true.pack(side=tk.LEFT)
             self.false.pack(side=tk.LEFT)
 
@@ -194,8 +197,9 @@ class WalabotPanel(tk.LabelFrame):
         self.pRes = self.WalabotParameter(self, "Phi   Res", 1, 10, 2.0)
         self.thld = self.WalabotParameter(self, "Threshold", 0.1, 100, 15.0)
         self.mti = self.WalabotParameterMTI(self)
-        self.parameters = (self.rMin, self.rMax, self.rRes, self.tMax,
-            self.tRes, self.pMax, self.pRes, self.thld, self.mti)
+        self.parameters = (
+            self.rMin, self.rMax, self.rRes, self.tMax, self.tRes,
+            self.pMax, self.pRes, self.thld, self.mti)
         for param in self.parameters:
             param.pack(anchor=tk.W)
 
@@ -247,8 +251,8 @@ class ConfigPanel(tk.LabelFrame):
             self.num.set(0)
             r1 = tk.Radiobutton(self, text="SDK", variable=self.num, value=0)
             r1.pack(side=tk.LEFT)
-            r2 = tk.Radiobutton(self, text="Vayyar Tracker", variable=self.num,
-                value=1)
+            r2 = tk.Radiobutton(
+                self, text="Vayyar Tracker", variable=self.num, value=1)
             r2.pack(side=tk.LEFT)
             self.radios = [r1, r2]
 
@@ -282,8 +286,8 @@ class ConfigPanel(tk.LabelFrame):
             self.num.set(1)
             self.radios = []
             for i in range(self.maxNum):
-                radio = tk.Radiobutton(self, text="{}".format(i+1),
-                    variable=self.num, value=i+1)
+                radio = tk.Radiobutton(
+                    self, text="{}".format(i+1), variable=self.num, value=i+1)
                 radio.pack(side=tk.LEFT)
                 self.radios.append(radio)
 
@@ -317,8 +321,10 @@ class ConfigPanel(tk.LabelFrame):
             self.num.set(3)
             self.radios = []
             for i in range(self.maxNum):
-                radio = tk.Radiobutton(self, text="{}".format(2*i+1),
-                    variable=self.num, value=i+1)
+                radio = tk.Radiobutton(
+                    self, text="{}".format(2*i+1),
+                    variable=self.num, value=i+1
+                )
                 radio.pack(side=tk.LEFT)
                 self.radios.append(radio)
 
@@ -344,11 +350,10 @@ class ConfigPanel(tk.LabelFrame):
         tk.LabelFrame.__init__(self, master, text="App Settings")
         self.numTargets = self.NumOfTargets(self)
         self.arenaDividors = self.ArenaDividors(self)
-        self.trackerType  = self.TrackerType(self)
+        self.trackerType = self.TrackerType(self)
         self.numTargets.pack(anchor=tk.W)
         self.arenaDividors.pack(anchor=tk.W)
         self.trackerType.pack(anchor=tk.W)
-
 
     def changeConfigsState(self, state):
         """ Change the state of all interactive components according to a
@@ -434,8 +439,11 @@ class TargetsPanel(tk.LabelFrame):
         """
         for i in range(self.master.numOfTargetsToDisplay):
             if i < len(targets):
-                txt = "#{}:   x: {:3.0f}   y: {:3.0f}   z: {:3.0f}".format(i+1,
-                    targets[i].xPosCm, targets[i].yPosCm, targets[i].zPosCm)
+                txt = "#{}:   x: {:3.0f}   y: {:3.0f}   z: {:3.0f}".format(
+                    i+1,
+                    targets[i].xPosCm,
+                    targets[i].yPosCm,
+                    targets[i].zPosCm)
                 self.targetLabels[i].config(text=txt)
             else:
                 self.targetLabels[i].config(text="#{}:".format(i+1))
@@ -455,14 +463,15 @@ class CanvasPanel(tk.LabelFrame):
         """ Init a black canvas.
         """
         tk.LabelFrame.__init__(self, master, text="Sensor Targets: R / Phi")
-        self.canvas = tk.Canvas(self, background="light gray",
+        self.canvas = tk.Canvas(
+            self, background="light gray",
             width=CANVAS_LENGTH, height=CANVAS_LENGTH, highlightthickness=0)
         self.canvas.bind("<Configure>", self.on_resize)
         self.height = self.winfo_reqheight()
         self.width = self.winfo_reqwidth()
         self.canvas.pack(fill=tk.BOTH, expand=tk.YES)
 
-    def on_resize(self,event):
+    def on_resize(self, event):
         wscale = event.width / self.width
         hscale = event.height / self.height
         self.width = event.width
@@ -485,8 +494,9 @@ class CanvasPanel(tk.LabelFrame):
         y1 = self.height * 2
         startDeg = 90 - self.phi
         extentDeg = self.phi * 2
-        self.canvas.create_arc(x0, y0, x1, y1, start=startDeg,
-            extent=extentDeg, fill="white", width=2)
+        self.canvas.create_arc(
+            x0, y0, x1, y1,
+            start=startDeg, extent=extentDeg, fill="white", width=2)
 
     def drawArenaDividors(self):
         """ Draw the arena dividors according to the number that was set in
@@ -496,8 +506,10 @@ class CanvasPanel(tk.LabelFrame):
         deg = 0
         arenaDividors = self.master.cnfgPanel.arenaDividors.get()
         while deg < self.phi:
-            x1 = self.width / 2 * (sin(radians(deg))/sin(radians(self.phi)) + 1)
-            x2 = self.width / 2 * (sin(radians(-deg))/sin(radians(self.phi)) + 1)
+            x1 = self.width / 2 * (
+                sin(radians(deg))/sin(radians(self.phi)) + 1)
+            x2 = self.width / 2 * (
+                sin(radians(-deg))/sin(radians(self.phi)) + 1)
             y1 = self.height * (1 - cos(radians(deg)))
             self.canvas.create_line(x0, y0, x1, y1, fill="#AAA", width=1)
             self.canvas.create_line(x0, y0, x2, y1, fill="#AAA", width=1)
@@ -510,12 +522,14 @@ class CanvasPanel(tk.LabelFrame):
         self.canvas.delete("target")
         for i, t in enumerate(targets):
             if i < self.master.numOfTargetsToDisplay:
-                x = self.width / 2 * (t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
+                x = self.width / 2 * (
+                    t.yPosCm / (self.rMax * sin(radians(self.phi))) + 1)
                 y = self.height * (1 - t.zPosCm / self.rMax)
-                self.canvas.create_oval(x-10, y-10, x+10, y+10,
+                self.canvas.create_oval(
+                    x-10, y-10, x+10, y+10,
                     fill=COLORS[int(t[3])], tags="target")
-                self.canvas.create_text(x, y, text="{}".format(i+1),
-                    tags="target")
+                self.canvas.create_text(
+                    x, y, text="{}".format(i+1), tags="target")
 
     def reset(self, *args):
         """ Remove all the canvas components, leaving it black.
@@ -541,7 +555,7 @@ class Walabot:
         try:
             self.wlbt.ConnectAny()
         except self.wlbt.WalabotError as err:
-            if err.code == 19: # "WALABOT_INSTRUMENT_NOT_FOUND"
+            if err.code == 19:  # "WALABOT_INSTRUMENT_NOT_FOUND"
                 return False
             else:
                 raise err
@@ -620,10 +634,10 @@ def sensorTargets():
     root = tk.Tk()
     root.title("Walabot - Sensor Targets")
     iconFile = tk.PhotoImage(file="walabot-icon.gif")
-    root.tk.call("wm", "iconphoto", root._w, iconFile) # set app icon
+    root.tk.call("wm", "iconphoto", root._w, iconFile)  # set app icon
     root.option_add("*Font", "TkFixedFont")
     SensorTargetsApp(root).pack(fill=tk.BOTH, expand=tk.YES)
-    root.geometry("+{}+{}".format(APP_X, APP_Y)) # set window location
+    root.geometry("+{}+{}".format(APP_X, APP_Y))  # set window location
     root.update()
     root.minsize(width=root.winfo_reqwidth(), height=root.winfo_reqheight())
     root.mainloop()

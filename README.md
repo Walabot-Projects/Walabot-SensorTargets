@@ -9,6 +9,6 @@ This app displays graphically the targets given by a Walabot over it's arena.
 ## How to use
 
 1. Install the [Walabot SDK](http://walabot.com/getting-started) and the [WalabotAPI Python library](https://github.com/Walabot-Projects/Walabot-HelloWalabot#how-to-use) using pip.
-2. Run `RawImage.py`.
+2. Run `SensorTargets.py`.
 
 ![Screenshot](https://raw.githubusercontent.com/Walabot-Projects/Walabot-SensorTargets/master/screenshot.png)
